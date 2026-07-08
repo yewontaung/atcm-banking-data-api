@@ -1,5 +1,5 @@
 from contextlib import contextmanager
-from contextvars import ContextVar
+from contextvars import ContextVar, Token
 from dataclasses import dataclass, field
 from functools import wraps
 from typing import Callable, ClassVar, Generator, ParamSpec, Protocol, TypeVar
@@ -24,13 +24,12 @@ class SecurityContext:
     __user__:ClassVar[ContextVar[SecurityUser | None]] = ContextVar("security_user", default=None)
 
     @classmethod
-    @contextmanager
-    def user(cls, user:SecurityUser) -> Generator[None, None, None]:
-        token = cls.__user__.set(user)
-        try:
-            yield
-        finally:
-            cls.__user__.reset(token)
+    def set_user(cls, user:SecurityUser) -> Token[SecurityUser | None]:
+        return cls.__user__.set(user)
+
+    @classmethod        
+    def reset_user(cls, token:Token[SecurityUser | None]):
+        cls.__user__.reset(token)
     
     @classmethod
     def getuser(cls) -> SecurityUser | None:

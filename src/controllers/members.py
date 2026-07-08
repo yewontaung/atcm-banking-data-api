@@ -2,6 +2,7 @@ from typing import Optional
 
 from fastapi import APIRouter, Depends, Query
 
+from configs import auth
 from dtos.inputs import MemberForm
 from dtos.outputs import MemberListItem
 from dtos.searches import MemberSearch
@@ -20,6 +21,7 @@ def detail(member_id:int):
     return members.profile(member_id)
 
 @router.post("/")
+@auth.hasroles("Admin")
 def save(form:MemberForm):
     return members.save(form)
 

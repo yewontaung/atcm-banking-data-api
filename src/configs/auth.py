@@ -14,7 +14,7 @@ from utils.managers.security import SecurityContext, DefaultSecurityManager, Sec
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/token")
 
-def get_current_user(token:str = Depends(oauth2_scheme), session:Session = Depends(get_session)):
+async def get_current_user(token:str = Depends(oauth2_scheme), session:Session = Depends(get_session)):
     try:
         payload = jwt.decode(jwt=token, key=env.get_env(env.JWT_SECRET), algorithms=env.get_env(env.ALGO))
         account_id = payload.get("account_id", None)
@@ -22,16 +22,25 @@ def get_current_user(token:str = Depends(oauth2_scheme), session:Session = Depen
         user = SecurityUser(
             userid=account.account_id,
             username=account.account_email,
-            roles=frozenset(account.role.name),
+            roles=frozenset({account.role.name}),
         )
-        with SecurityContext.user(user=user):
-            yield user
+        print(user.roles)
     except jwt.InvalidTokenError:
         raise HTTPException(status_code=HTTPStatus.UNAUTHORIZED, detail="Invalid token.")
     except ResourceNotFoundException as e:
         raise HTTPException(status_code=HTTPStatus.UNAUTHORIZED, detail=e.message)
-    except:
+    except Exception as e:
+        print("========error========")
+        print(e)
+        print("========error========")
         raise HTTPException(status_code=HTTPStatus.UNAUTHORIZED, detail="Authorization fails.")
+    
+    user_token = SecurityContext.set_user(user=user)
+    try:
+        yield user
+    finally:
+        SecurityContext.reset_user(user_token)
+
 
 sec = DefaultSecurityManager()
 

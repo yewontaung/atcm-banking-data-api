@@ -6,6 +6,7 @@ import uvicorn
 from app import handlers, routes
 from data import database
 from utils.exceptions import AppBusinessException, ResourceNotFoundException
+from utils.managers.security import SecurityException
 
 @asynccontextmanager
 async def lifespan(app:FastAPI):
@@ -28,6 +29,7 @@ app = FastAPI(lifespan=lifespan)
 
 app.exception_handler(ResourceNotFoundException)(handlers.handle_resource_notfound_exception)
 app.exception_handler(AppBusinessException)(handlers.handle_app_business_exception)
+app.exception_handler(SecurityException)(handlers.handle_security_exception)
 
 app.include_router(router=routes.annonymous)
 app.include_router(router=routes.authenticated)
