@@ -1,12 +1,37 @@
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
+import uvicorn
 
-from app import routes
+from app import handlers, routes
+from data import database
+from utils.exceptions import AppBusinessException, ResourceNotFoundException
 
+@asynccontextmanager
+async def lifespan(app:FastAPI):
 
-app = FastAPI()
+    database.create_tables()
+
+    database.seed_admin()
+
+    print("==============================")
+    print("ACTM API is started.")
+    print("==============================")
+    
+    yield
+
+    print("==============================")
+    print("ACTM API is ended.")
+    print("==============================")
+
+app = FastAPI(lifespan=lifespan)
+
+app.exception_handler(ResourceNotFoundException)(handlers.handle_resource_notfound_exception)
+app.exception_handler(AppBusinessException)(handlers.handle_app_business_exception)
 
 app.include_router(router=routes.annonymous)
 app.include_router(router=routes.authenticated)
 
+
 if __name__ == "__main__":
-    print("app is running.")
+    uvicorn.run(app)
