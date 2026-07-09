@@ -1,7 +1,8 @@
 from sqlmodel import Session, col, func, select
 
 from data.models import Dataset
-from dtos.outputs import DatasetListItem
+from dtos.inputs import DatasetForm
+from dtos.outputs import DatasetListItem, ModificationResult
 from dtos.searches import DatasetSearch
 from utils.paginations import PaginationResult
 
@@ -19,3 +20,10 @@ def search(search:DatasetSearch, page:int, size:int, session:Session) -> Paginat
     total = session.exec(count).one_or_none()
 
     return PaginationResult(items, page, size, total or 0)
+
+def save(form:DatasetForm, user_id:str, session:Session) -> ModificationResult[int]:
+    # validation
+    # check intents
+
+    # check ners for each intents
+    return ModificationResult(1)

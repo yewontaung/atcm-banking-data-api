@@ -3,9 +3,11 @@ from sqlmodel import Session
 
 from configs import auth
 from data.database import get_session
-from dtos.outputs import DatasetListItem
+from dtos.inputs import DatasetForm
+from dtos.outputs import DatasetListItem, ModificationResult
 from dtos.searches import DatasetSearch
 from services import datasets
+from utils.managers.security import SecurityContext
 from utils.paginations import PaginationResult
 
 
@@ -19,3 +21,9 @@ def search(
     search:DatasetSearch = Depends(), 
     session:Session = Depends(get_session)):
     return datasets.search(search, page, size, session)
+
+@router.post("/", response_model=ModificationResult[int])
+@auth.authenticated
+def save(form:DatasetForm, session:Session = Depends(get_session)):
+    datasets.save(form, SecurityContext.get_user().userid, session)
+    return ModificationResult(1)

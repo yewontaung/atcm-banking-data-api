@@ -1,5 +1,7 @@
 from pydantic import BaseModel, EmailStr, Field
 
+from data.enums import DatasetType
+
 
 class MemberForm(BaseModel):
     name:str = Field()
@@ -17,3 +19,21 @@ class IntentForm(BaseModel):
     label:str
     description:str
     ners:list[int]
+
+class DatasetIntentNerItem(BaseModel):
+    ner_id:int
+    label:str
+    start:int
+    end:int
+
+class DatasetIntentItem(BaseModel):
+    intent_id:int
+    label:str
+    start:int
+    end:int
+    ners:list[DatasetIntentNerItem]
+
+class DatasetForm(BaseModel):
+    command:str
+    dataset_type:DatasetType
+    intents:list[DatasetIntentItem]
