@@ -9,3 +9,6 @@ class MemberForm(BaseModel):
 class SignInForm(BaseModel):
     account_email:EmailStr
     password:str = Field(min_length=6)
+
+class NerForm(BaseModel):
+    label:str = Field()

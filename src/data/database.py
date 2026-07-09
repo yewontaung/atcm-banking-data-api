@@ -16,6 +16,7 @@ def create_tables():
 def get_session():
     with Session(bind=engine) as session:
         yield session
+        
 
 T = TypeVar("T")
 

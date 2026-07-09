@@ -1,10 +1,11 @@
 from dataclasses import dataclass
+from datetime import datetime
 from typing import Generic, TypeVar
 
-from sqlmodel import col, select
+from sqlmodel import col, func, select
 
 from data.enums import MemberRole
-from data.models import Account
+from data.models import NER, Account, Intent, NerIntentLink
 
 
 @dataclass(frozen=True)
@@ -22,6 +23,24 @@ class MemberListItem:
             col(Account.name).label("member_name"),
             col(Account.account_email).label("member_email"),
             col(Account.role),
+        )
+
+@dataclass(frozen=True)
+class NerListItem:
+    ner_id:int
+    label:str
+    last_updated:datetime | None
+    intents:int
+
+    @classmethod
+    def select(cls):
+        return (
+            select(
+                NER,
+                func.count(col(NerIntentLink.intent_id))
+            ).select_from(NER)
+            .outerjoin(NerIntentLink, NER.ner_id == NerIntentLink.ner_id)
+            .group_by(NER.ner_id)
         )
 
 
@@ -42,3 +61,15 @@ class AuthResult:
 
     access_token:str
     access_type:str = "Bearer"
+
+@dataclass(frozen=True)
+class Profile:
+    account_id:int
+    account_name:str
+    account_email:str
+    account_role:str
+    profile_url:str
+
+    training_dataset:int
+    validation_dataset:int
+    testing_dataset:int
