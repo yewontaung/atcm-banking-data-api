@@ -12,3 +12,8 @@ class SignInForm(BaseModel):
 
 class NerForm(BaseModel):
     label:str = Field()
+
+class IntentForm(BaseModel):
+    label:str
+    description:str
+    ners:list[int]

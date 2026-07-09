@@ -22,7 +22,7 @@ def profile(member_id:int):...
 
 def save(form:MemberForm, user_id:str, session:Session)-> ModificationResult[int]:
     if session.exec(select(Account).where(Account.account_email == form.member_email)).one_or_none() is not None:
-        raise AppBusinessException(f"Member with email: {form.member_email} is already existed.")
+        raise AppBusinessException(f"Member with email: {form.member_email} has already existed.")
     account = Account(
         account_email=form.member_email,
         role=MemberRole(form.role),

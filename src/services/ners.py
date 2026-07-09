@@ -18,7 +18,7 @@ def search(q:str | None, session:Session) -> list[NerListItem]:
 
 def save(form:NerForm, user_id:str, session:Session) -> ModificationResult[int]:
     if session.exec(select(NER).where(NER.label == form.label)).one_or_none():
-        raise AppBusinessException(f"NER with label:{form.label} already exists.")
+        raise AppBusinessException(f"NER with label: {form.label} has already existed.")
     ner = NER(label=form.label, created_at=datetime.now(tz=timezone.utc), created_by=int(user_id))
     session.add(ner)
     session.commit()

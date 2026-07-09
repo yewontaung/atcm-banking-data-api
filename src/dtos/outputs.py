@@ -5,7 +5,7 @@ from typing import Generic, TypeVar
 from sqlmodel import col, func, select
 
 from data.enums import MemberRole
-from data.models import NER, Account, Intent, NerIntentLink
+from data.models import NER, Account, DatasetIntent, Intent, NerIntentLink
 
 
 @dataclass(frozen=True)
@@ -42,6 +42,23 @@ class NerListItem:
             .outerjoin(NerIntentLink, NER.ner_id == NerIntentLink.ner_id)
             .group_by(NER.ner_id)
         )
+
+@dataclass(frozen=True)
+class IntentListItem:
+    intent_id:int
+    label:str
+    last_updated:datetime
+    dataset:int
+    ners:list[str]
+
+    @classmethod
+    def select(cls):
+        return (select(
+            Intent,
+            func.count(col(DatasetIntent.dataset_id))
+        ).select_from(Intent)
+        .outerjoin(DatasetIntent, Intent.intent_id == DatasetIntent.intent_id)
+        .group_by(Intent.intent_id, Intent.label))
 
 
 ID = TypeVar("ID")
