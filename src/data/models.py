@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlmodel import Field, SQLModel
+from sqlmodel import Field, ForeignKey, Relationship, SQLModel
 
 from data.enums import MemberRole
 
@@ -15,3 +15,22 @@ class Account(SQLModel, table=True):
 
     created_at:datetime = Field()
     updated_at:datetime = Field(nullable=True)
+
+class NerIntentJoin(SQLModel, table=True):
+    ner_id:int = Field(primary_key=True, foreign_key="ner.ner_id")
+    intent_id:int = Field(primary_key=True, foreign_key="intent.intent_id")
+
+class NER(SQLModel, table=True):
+    ner_id:int = Field(primary_key=True, default=None)
+    label:str = Field(unique=True, nullable=False)
+    created_at:datetime = Field()
+    updated_at:datetime = Field(nullable=False)
+    created_by:int = Field(foreign_key="account.account_id")
+
+class Intent(SQLModel, table=True):
+    intent_id:int = Field(primary_key=True, default=None)
+    label:str = Field(unique=True, nullable=False)
+    created_at:datetime = Field()
+    updated_at:datetime = Field(nullable=False)
+    created_by:int = Field(foreign_key="account.account_id")
+    ners:list[NER] = Relationship(link_model=NerIntentJoin)
