@@ -19,7 +19,7 @@ def sign_in(form:SignInForm, session:Session) -> AuthResult:
         "account_email": account.account_email,
         "account_role": account.role.name,
     }
-    access_token = jwt.encode(payload=payload, key=env.get_env(env.JWT_SECRET), algorithm=env.get_env(env.ALGO))
+    access_token = jwt.encode(payload=payload, key=env.JWT_SECRET, algorithm=env.ALGO)
     return AuthResult(
         account_id=account.account_id,
         account_name=account.name,

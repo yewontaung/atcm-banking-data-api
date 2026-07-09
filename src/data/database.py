@@ -8,7 +8,7 @@ from utils.exceptions import ResourceNotFoundException
 from utils.singletons import hash_password
 from .models import *
 
-engine = create_engine(url=env.get_env(env.DATABASE_URL), echo=True)
+engine = create_engine(url=env.DATABASE_URL, echo=True)
 
 def create_tables():
     SQLModel.metadata.create_all(bind=engine)
@@ -31,9 +31,9 @@ def seed_admin():
                 ).select_from(Account)).one()
         if count == 0:
             account = Account(
-                account_email=env.get_env(env.ADMIN_EMAIL),
-                hashed_password=hash_password(env.get_env(env.ADMIN_PASSWORD)),
-                name=env.get_env(env.ADMIN_NAME),
+                account_email=env.ADMIN_EMAIL,
+                hashed_password=hash_password(env.ADMIN_PASSWORD),
+                name=env.ADMIN_NAME,
                 role=MemberRole.Admin,
                 created_at=datetime.now(tz=timezone.utc),
             )

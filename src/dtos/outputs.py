@@ -1,7 +1,10 @@
 from dataclasses import dataclass
 from typing import Generic, TypeVar
 
+from sqlmodel import col, select
+
 from data.enums import MemberRole
+from data.models import Account
 
 
 @dataclass(frozen=True)
@@ -11,6 +14,15 @@ class MemberListItem:
     member_email:str
     role:MemberRole
     datasets:int
+
+    @classmethod
+    def select(cls):
+        return select(
+            col(Account.account_id).label("member_id"),
+            col(Account.name).label("member_name"),
+            col(Account.account_email).label("member_email"),
+            col(Account.role),
+        )
 
 
 ID = TypeVar("ID")

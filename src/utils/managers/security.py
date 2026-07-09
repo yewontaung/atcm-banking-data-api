@@ -32,7 +32,7 @@ class SecurityContext:
         cls.__user__.reset(token)
     
     @classmethod
-    def getuser(cls) -> SecurityUser | None:
+    def get_user(cls) -> SecurityUser | None:
         return cls.__user__.get()
     
 class SecurityManager(Protocol):
@@ -48,7 +48,7 @@ class DefaultSecurityManager(SecurityManager):
         def decorate(func:Callable[P, R]):
             @wraps(func)
             def wrapper(*args:P.args, **kwargs:P.kwargs) -> R:
-                user = SecurityContext.getuser()
+                user = SecurityContext.get_user()
                 if user is None:raise SecurityException("Not Authenticated.")
                 if user.disabled:raise SecurityException("Not Authorized.")
                 if not allowed.intersection(user.roles):raise SecurityException("Role is not Authorized.")
@@ -60,7 +60,7 @@ class DefaultSecurityManager(SecurityManager):
     def authenticated(self, func:Callable[P, R]):
         @wraps(func)
         def wrapper(*args:P.args, **kwargs:P.kwargs) -> R:
-            user = SecurityContext.getuser()
+            user = SecurityContext.get_user()
             if not user:raise SecurityException("Not Authenticated.")
             if user.disabled:raise SecurityException("Not Authorized.")
             return func(*args, **kwargs)

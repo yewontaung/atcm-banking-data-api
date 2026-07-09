@@ -16,7 +16,7 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/token")
 
 async def get_current_user(token:str = Depends(oauth2_scheme), session:Session = Depends(get_session)):
     try:
-        payload = jwt.decode(jwt=token, key=env.get_env(env.JWT_SECRET), algorithms=env.get_env(env.ALGO))
+        payload = jwt.decode(jwt=token, key=env.JWT_SECRET, algorithms=env.ALGO)
         account_id = payload.get("account_id", None)
         account = safe_call(session.get(Account, account_id), "Account", "account_id", account_id)
         user = SecurityUser(

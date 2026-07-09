@@ -36,4 +36,4 @@ app.include_router(router=routes.authenticated)
 
 
 if __name__ == "__main__":
-    uvicorn.run(app)
+    uvicorn.run(app="main:app", reload=True)
