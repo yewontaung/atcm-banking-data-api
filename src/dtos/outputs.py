@@ -2,10 +2,10 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Generic, TypeVar
 
-from sqlmodel import col, func, select
+from sqlmodel import col, desc, func, select
 
-from data.enums import MemberRole
-from data.models import NER, Account, DatasetIntent, Intent, NerIntentLink
+from data.enums import DatasetType, MemberRole
+from data.models import NER, Account, Dataset, DatasetIntent, Intent, NerIntentLink
 
 
 @dataclass(frozen=True)
@@ -60,6 +60,33 @@ class IntentListItem:
         .outerjoin(DatasetIntent, Intent.intent_id == DatasetIntent.intent_id)
         .group_by(Intent.intent_id, Intent.label))
 
+@dataclass(frozen=True)
+class DatasetListItem:
+    dataset_id:int
+    command:str
+    dataset_type:DatasetType
+    approved:bool
+    member_id:int
+    member_name:str
+    last_updated:datetime
+
+    @classmethod
+    def select(cls):
+        return (
+            select(Dataset, Account.name)
+            .select_from(Dataset)
+            .join(Account, Account.account_id == Dataset.member_id)
+            .order_by(desc(Dataset.updated_at))
+        )
+
+    @classmethod
+    def count(cls):
+        return (
+            select(func.count(col(Dataset.dataset_id)))
+            .select_from(Dataset)
+            .join(Account, Account.account_id == Dataset.member_id)
+            .group_by(Dataset.dataset_id)
+        )
 
 ID = TypeVar("ID")
 
