@@ -93,15 +93,17 @@ ID = TypeVar("ID")
 class ModificationResult(Generic[ID]):
     result_data:ID
 
-
 @dataclass(frozen=True)
-class AuthResult:
+class AuthProfile:
     account_id:int
     account_name:str
     account_email:str
     account_role:str
     profile_url:str
 
+@dataclass(frozen=True)
+class AuthResult:
+    profile:AuthProfile
     access_token:str
     access_type:str = "Bearer"
 

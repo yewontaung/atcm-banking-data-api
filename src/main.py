@@ -1,6 +1,7 @@
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 
 from app import handlers, routes
@@ -33,6 +34,13 @@ app.exception_handler(SecurityException)(handlers.handle_security_exception)
 
 app.include_router(router=routes.annonymous)
 app.include_router(router=routes.authenticated)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_credentials=True,
+)
 
 
 if __name__ == "__main__":

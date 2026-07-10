@@ -4,7 +4,7 @@ from sqlmodel import Session, select
 from data.database import safe_call
 from data.models import Account
 from dtos.inputs import PasswordForm, SignInForm
-from dtos.outputs import AuthResult, ModificationResult, Profile
+from dtos.outputs import AuthProfile, AuthResult, ModificationResult, Profile
 from utils import env
 from utils.exceptions import AppBusinessException
 from utils.singletons import hash_password, verify_password
@@ -21,11 +21,13 @@ def sign_in(form:SignInForm, session:Session) -> AuthResult:
     }
     access_token = jwt.encode(payload=payload, key=env.JWT_SECRET, algorithm=env.ALGO)
     return AuthResult(
-        account_id=account.account_id,
-        account_name=account.name,
-        account_email=account.account_email,
-        account_role=account.role,
-        profile_url=account.profile_url,
+        profile=AuthProfile(
+            account_id=account.account_id,
+            account_name=account.name,
+            account_email=account.account_email,
+            account_role=account.role,
+            profile_url=account.profile_url,
+        ),
         access_token=access_token,
     )
 
