@@ -2,6 +2,7 @@ from contextlib import contextmanager
 from contextvars import ContextVar, Token
 from dataclasses import dataclass, field
 from functools import wraps
+import inspect
 from typing import Callable, ClassVar, Generator, ParamSpec, Protocol, TypeVar
 
 P = ParamSpec("P")
@@ -47,21 +48,27 @@ class DefaultSecurityManager(SecurityManager):
         allowed = frozenset(roles)
         def decorate(func:Callable[P, R]):
             @wraps(func)
-            def wrapper(*args:P.args, **kwargs:P.kwargs) -> R:
+            async def wrapper(*args:P.args, **kwargs:P.kwargs) -> R:
                 user = SecurityContext.get_user()
                 if user is None:raise SecurityException("Not Authenticated.")
                 if user.disabled:raise SecurityException("Not Authorized.")
                 if not allowed.intersection(user.roles):raise SecurityException("Role is not Authorized.")
-                return func(*args, **kwargs)
+                result = func(*args, **kwargs)
+                if inspect.isawaitable(result):
+                    return await result
+                return result
 
             return wrapper        
         return decorate
     
     def authenticated(self, func:Callable[P, R]):
         @wraps(func)
-        def wrapper(*args:P.args, **kwargs:P.kwargs) -> R:
+        async def wrapper(*args:P.args, **kwargs:P.kwargs) -> R:
             user = SecurityContext.get_user()
             if not user:raise SecurityException("Not Authenticated.")
             if user.disabled:raise SecurityException("Not Authorized.")
-            return func(*args, **kwargs)
+            result = func(*args, **kwargs)
+            if inspect.isawaitable(result):
+                return await result
+            return result
         return wrapper
