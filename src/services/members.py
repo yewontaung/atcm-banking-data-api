@@ -14,7 +14,7 @@ from utils.singletons import hash_password
 
 def search(search:MemberSearch, user_id:str, session:Session) -> list[MemberListItem]:
     
-    sql = search.where(MemberListItem.select()).where(Account.account_id != user_id).order_by(desc(Account.account_id))
+    sql = search.where(MemberListItem.select()).order_by(desc(Account.account_id))
     result = session.exec(statement=sql).all()
     return [MemberListItem(*item, 0) for item in result]
 
