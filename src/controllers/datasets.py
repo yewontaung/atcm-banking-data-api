@@ -16,7 +16,7 @@ router = APIRouter(prefix="/datasets")
 @router.get("/", response_model=PaginationResult[DatasetListItem])
 @auth.authenticated
 def search(
-    page:int = Query(10),
+    page:int = Query(1),
     size:int = Query(10),
     search:DatasetSearch = Depends(), 
     session:Session = Depends(get_session)):
@@ -25,5 +25,5 @@ def search(
 @router.post("/", response_model=ModificationResult[int])
 @auth.authenticated
 def save(form:DatasetForm, session:Session = Depends(get_session)):
-    datasets.save(form, SecurityContext.get_user().userid, session)
-    return ModificationResult(1)
+    return datasets.save(form, SecurityContext.get_user().userid, session)
+    

@@ -49,8 +49,8 @@ class Dataset(SQLModel, table=True):
 class DatasetIntent(SQLModel, table=True):
     intent_id:int = Field(primary_key=True, foreign_key="intent.intent_id")
     dataset_id:int = Field(primary_key=True, foreign_key="dataset.dataset_id")
-    start:int = Field(nullable=False)
-    end:int = Field(nullable=False)
+    start_index:int = Field(nullable=False)
+    end_index:int = Field(nullable=False)
     dataset:Dataset = Relationship(back_populates="intents")
     ners:list["DatasetIntentNer"] = Relationship(back_populates="intent")
 
@@ -58,8 +58,8 @@ class DatasetIntentNer(SQLModel, table=True):
     ner_id:int = Field(primary_key=True, foreign_key="ner.ner_id")
     intent_id:int = Field(primary_key=True)
     dataset_id:int = Field(primary_key=True)
-    start:int = Field(nullable=False)
-    end:int = Field(nullable=False)
+    start_index:int = Field(nullable=False)
+    end_index:int = Field(nullable=False)
 
     intent:DatasetIntent = Relationship(back_populates="ners")
 

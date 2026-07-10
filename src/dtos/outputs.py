@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Generic, TypeVar
 
-from sqlmodel import col, desc, func, select
+from sqlmodel import col, desc, distinct, func, select
 
 from data.enums import DatasetType, MemberRole
 from data.models import NER, Account, Dataset, DatasetIntent, Intent, NerIntentLink
@@ -82,10 +82,9 @@ class DatasetListItem:
     @classmethod
     def count(cls):
         return (
-            select(func.count(col(Dataset.dataset_id)))
+            select(func.count(distinct(Dataset.dataset_id)))
             .select_from(Dataset)
             .join(Account, Account.account_id == Dataset.member_id)
-            .group_by(Dataset.dataset_id)
         )
 
 ID = TypeVar("ID")

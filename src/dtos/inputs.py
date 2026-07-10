@@ -23,14 +23,14 @@ class IntentForm(BaseModel):
 class DatasetIntentNerItem(BaseModel):
     ner_id:int
     label:str
-    start:int
-    end:int
+    start_index:int
+    end_index:int
 
 class DatasetIntentItem(BaseModel):
     intent_id:int
     label:str
-    start:int
-    end:int
+    start_index:int
+    end_index:int
     ners:list[DatasetIntentNerItem]
 
 class DatasetForm(BaseModel):

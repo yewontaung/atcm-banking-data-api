@@ -35,8 +35,8 @@ class DatasetSearch(BaseModel):
         if self.strategy and self.keyword:
             match self.strategy:
                 case "intent":select = (
-                    select.join(DatasetIntent, DatasetIntent.dataset_id == Dataset.dataset_id)
-                        .join(Intent, DatasetIntent.intent_id == Intent.intent_id)
+                    select.outerjoin(DatasetIntent, DatasetIntent.dataset_id == Dataset.dataset_id)
+                        .outerjoin(Intent, DatasetIntent.intent_id == Intent.intent_id)
                         .where(col(Intent.label).ilike(f"{self.keyword}%"))
                 )
                 case "command":select = select.where(col(Dataset.command).ilike(f"{self.keyword}%"))

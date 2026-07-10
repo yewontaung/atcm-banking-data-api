@@ -1,9 +1,13 @@
-from sqlmodel import Session, col, func, select
+from datetime import datetime, timezone
 
-from data.models import Dataset
+from sqlalchemy.exc import IntegrityError
+from sqlmodel import Session
+
+from data.models import Dataset, DatasetIntent, DatasetIntentNer, Intent
 from dtos.inputs import DatasetForm
 from dtos.outputs import DatasetListItem, ModificationResult
 from dtos.searches import DatasetSearch
+from utils.exceptions import AppBusinessException
 from utils.paginations import PaginationResult
 
 
@@ -18,12 +22,36 @@ def search(search:DatasetSearch, page:int, size:int, session:Session) -> Paginat
 
     count = search.where(DatasetListItem.count())
     total = session.exec(count).one_or_none()
-
     return PaginationResult(items, page, size, total or 0)
 
 def save(form:DatasetForm, user_id:str, session:Session) -> ModificationResult[int]:
-    # validation
-    # check intents
+    try:
+        dataset = Dataset(
+            command=form.command,
+            dataset_type=form.dataset_type,
+            approved=False,
+            member_id=int(user_id),
+            updated_at=datetime.now(tz=timezone.utc),
+        )
+        session.add(dataset)
+        session.flush([dataset])
 
-    # check ners for each intents
-    return ModificationResult(1)
+        intents = [DatasetIntent(
+            intent_id=intent.intent_id, 
+            dataset_id=dataset.dataset_id,
+            start_index=intent.start_index,
+            end_index=intent.end_index,
+            ners=[DatasetIntentNer(
+                ner_id=ner.ner_id, 
+                intent_id=intent.intent_id, 
+                dataset_id=dataset.dataset_id,
+                start_index=ner.start_index,
+                end_index=ner.end_index) for ner in intent.ners]) 
+            for intent in form.intents]
+        
+        session.add_all(intents)
+        session.commit()
+
+        return ModificationResult(dataset.dataset_id)
+    except IntegrityError as e:
+        raise AppBusinessException("Something went worng. Check input value again.")

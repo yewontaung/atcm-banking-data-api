@@ -1,6 +1,8 @@
 from datetime import timezone
+import sqlite3
 from typing import TypeVar
 
+from sqlalchemy import Engine, event
 from sqlmodel import SQLModel, Session, col, create_engine, func, select
 
 from utils import env
@@ -16,7 +18,12 @@ def create_tables():
 def get_session():
     with Session(bind=engine) as session:
         yield session
-        
+
+@event.listens_for(Engine, "connect")
+def set_database_pragma(conn:sqlite3.Connection, _):
+    cursor = conn.cursor()
+    cursor.execute("PRAGMA foreign_keys=ON")
+    cursor.close()
 
 T = TypeVar("T")
 
