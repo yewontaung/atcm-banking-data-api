@@ -43,7 +43,8 @@ class Dataset(SQLModel, table=True):
     approved:bool = Field(nullable=False)
     member_id:int = Field(nullable=False)
     updated_at:datetime = Field(nullable=False)
-
+    deleted:bool = Field(nullable=False, default=False)
+    
     intents:list["DatasetIntent"] = Relationship(back_populates="dataset")
 
 class DatasetIntent(SQLModel, table=True):

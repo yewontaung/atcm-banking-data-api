@@ -20,9 +20,11 @@ def search(q:str | None = Query(None), session:Session = Depends(get_session)):
 def detail():...
 
 @router.post("/", response_model=ModificationResult[int])
-@auth.hasroles("Admin")
+@auth.has_roles("Admin")
 def save(form:IntentForm, session:Session = Depends(get_session)):
     return intents.save(form, SecurityContext.get_user().userid, session)
 
-@router.patch("/")
-def approve():...
+@router.delete("/{intent_id}", response_model=ModificationResult[int])
+@auth.has_roles("Admin")
+def delete(intent_id:int, session:Session = Depends(get_session)):
+    return intents.delete(intent_id, session)

@@ -26,7 +26,7 @@ def detail(member_id:int):
     return members.profile(member_id)
 
 @router.post("/", response_model=ModificationResult[int])
-@auth.hasroles("Admin")
+@auth.has_roles("Admin")
 def save(form:MemberForm, session:Session = Depends(database.get_session)):
     return members.save(form, SecurityContext.get_user().userid, session)
 

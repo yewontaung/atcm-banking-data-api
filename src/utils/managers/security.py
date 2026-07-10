@@ -37,13 +37,13 @@ class SecurityContext:
     
 class SecurityManager(Protocol):
 
-    def hasroles(self, *roles:str) -> Callable[[Callable[P, R]], Callable[P, R]]:...
+    def has_roles(self, *roles:str) -> Callable[[Callable[P, R]], Callable[P, R]]:...
 
     def authenticated(self, func:Callable[P, R]) -> Callable[P, R]:...
 
 class DefaultSecurityManager(SecurityManager):
 
-    def hasroles(self, *roles:str):
+    def has_roles(self, *roles:str):
         allowed = frozenset(roles)
         def decorate(func:Callable[P, R]):
             @wraps(func)

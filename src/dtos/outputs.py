@@ -91,7 +91,7 @@ ID = TypeVar("ID")
 
 @dataclass(frozen=True)
 class ModificationResult(Generic[ID]):
-    result_id:ID
+    result_data:ID
 
 
 @dataclass(frozen=True)

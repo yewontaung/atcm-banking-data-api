@@ -1,6 +1,9 @@
+from datetime import datetime, timezone
+
 from pydantic import BaseModel, EmailStr, Field
 
 from data.enums import DatasetType
+from data.models import Dataset
 
 
 class MemberForm(BaseModel):
@@ -37,3 +40,12 @@ class DatasetForm(BaseModel):
     command:str
     dataset_type:DatasetType
     intents:list[DatasetIntentItem]
+
+    def dataset(self, user_id:int) -> Dataset:
+        return Dataset(
+            command=self.command,
+            dataset_type=self.dataset_type,
+            approved=False,
+            member_id=int(user_id),
+            updated_at=datetime.now(tz=timezone.utc),
+        )

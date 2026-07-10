@@ -1,8 +1,9 @@
 from datetime import datetime, timezone
 
-from sqlmodel import Session, col, select
+from sqlmodel import Session, col, func, select
 
-from data.models import NER, Intent
+from data.database import safe_call
+from data.models import NER, Dataset, DatasetIntent, Intent
 from dtos.inputs import IntentForm
 from dtos.outputs import IntentListItem, ModificationResult
 from utils.exceptions import AppBusinessException
@@ -39,3 +40,13 @@ def save(form:IntentForm, user_id:str, session:Session):
     session.refresh(intent)
     
     return ModificationResult(intent.intent_id)
+
+def delete(intent_id:int, session:Session) -> ModificationResult[int]:
+    intent = safe_call(session.get(Intent, intent_id), "Intent", "intent_id", intent_id)
+    count = select(func.count(DatasetIntent.intent_id)).select_from(DatasetIntent).where(DatasetIntent.intent_id == intent.intent_id)
+    total = session.exec(count).one_or_none()
+    if total:
+        raise AppBusinessException(f"Intent with intent_id: {intent_id} cannot be deleted because it has {total} datasets.")
+    session.delete(intent)
+    session.commit()
+    return ModificationResult(intent_id)
