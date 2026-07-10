@@ -19,7 +19,7 @@ router = APIRouter(prefix="/members")
 def index(
     search:MemberSearch=Depends(),
     session:Session = Depends(database.get_session)):
-    return members.search(search, SecurityContext.get_user().userid, session)
+    return members.search(search, SecurityContext.get_user().user_id, session)
 
 @router.get("/{member_id}")
 def detail(member_id:int):
@@ -28,7 +28,7 @@ def detail(member_id:int):
 @router.post("/", response_model=ModificationResult[int])
 @auth.has_roles("Admin")
 def save(form:MemberForm, session:Session = Depends(database.get_session)):
-    return members.save(form, SecurityContext.get_user().userid, session)
+    return members.save(form, SecurityContext.get_user().user_id, session)
 
 @router.put("/{member_id}/role")
 def update(member_id:int):

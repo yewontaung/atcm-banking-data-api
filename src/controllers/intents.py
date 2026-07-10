@@ -22,7 +22,7 @@ def detail():...
 @router.post("/", response_model=ModificationResult[int])
 @auth.has_roles("Admin")
 def save(form:IntentForm, session:Session = Depends(get_session)):
-    return intents.save(form, SecurityContext.get_user().userid, session)
+    return intents.save(form, SecurityContext.get_user().user_id, session)
 
 @router.delete("/{intent_id}", response_model=ModificationResult[int])
 @auth.has_roles("Admin")

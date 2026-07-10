@@ -33,14 +33,14 @@ def recycle_bin(
 @router.post("/", response_model=ModificationResult[int])
 @auth.authenticated
 def save(form:DatasetForm, session:Session = Depends(get_session)):
-    return datasets.save(form, SecurityContext.get_user().userid, session)
+    return datasets.save(form, SecurityContext.get_user().user_id, session)
 
 @router.put("/{dataset_id}", response_model=ModificationResult[int])
 @auth.has_roles("Admin", "Supervisor")
 def approve(dataset_id:int, session:Session = Depends(get_session)):
-    return datasets.approve(dataset_id=dataset_id, user_id=SecurityContext.get_user().userid, session=session)
+    return datasets.approve(dataset_id=dataset_id, user_id=SecurityContext.get_user().user_id, session=session)
 
 @router.post("/jsons", response_model=ModificationResult[list[int]])
 @auth.authenticated
 def save_jsons(forms:list[DatasetForm], session:Session = Depends(get_session)):
-    return datasets.save_jsons(forms, SecurityContext.get_user().userid, session)
+    return datasets.save_jsons(forms, SecurityContext.get_user().user_id, session)

@@ -9,7 +9,7 @@ R = TypeVar("R")
 
 @dataclass(frozen=True)
 class SecurityUser:
-    userid:str
+    user_id:str
     username:str
     roles:frozenset[str] = field(default_factory=frozenset)
     disabled:bool = field(default=False)

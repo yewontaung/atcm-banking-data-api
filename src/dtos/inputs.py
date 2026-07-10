@@ -49,3 +49,12 @@ class DatasetForm(BaseModel):
             member_id=int(user_id),
             updated_at=datetime.now(tz=timezone.utc),
         )
+    
+class PasswordForm(BaseModel):
+    old_password:str = Field(min_length=6)
+    new_password:str = Field(min_length=6)
+    confirm_password:str = Field(min_length=6)
+
+    @property
+    def is_valid(self) -> bool:
+        return self.new_password == self.confirm_password

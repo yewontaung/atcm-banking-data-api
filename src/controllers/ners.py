@@ -22,4 +22,4 @@ def detail():...
 @router.post("/", response_model=ModificationResult[int])
 @auth.has_roles("Admin")
 def save(form:NerForm, session:Session = Depends(get_session)):
-    return ners.save(form, SecurityContext.get_user().userid, session)
+    return ners.save(form, SecurityContext.get_user().user_id, session)

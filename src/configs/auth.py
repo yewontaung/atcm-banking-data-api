@@ -20,7 +20,7 @@ async def get_current_user(token:str = Depends(oauth2_scheme), session:Session =
         account_id = payload.get("account_id", None)
         account = safe_call(session.get(Account, account_id), "Account", "account_id", account_id)
         user = SecurityUser(
-            userid=account.account_id,
+            user_id=account.account_id,
             username=account.account_email,
             roles=frozenset({account.role.name}),
         )
