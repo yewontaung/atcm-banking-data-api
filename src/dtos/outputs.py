@@ -1,15 +1,15 @@
-from dataclasses import dataclass
 from datetime import datetime
-from typing import Generic, TypeVar
+from typing import Generic, Type, TypeVar
 
+import sqlalchemy
 from sqlmodel import col, desc, distinct, func, select
 
 from data.enums import DatasetType, MemberRole
 from data.models import NER, Account, Dataset, DatasetIntent, Intent, NerIntentLink
+from utils.basedto import BaseDto
 
 
-@dataclass(frozen=True)
-class MemberListItem:
+class MemberListItem(BaseDto):
     member_id:int
     member_name:str
     member_email:str
@@ -17,16 +17,16 @@ class MemberListItem:
     datasets:int
 
     @classmethod
-    def select(cls):
-        return select(
+    def select(cls, DATASET:Type[Dataset]):
+        return sqlalchemy.select(
             col(Account.account_id).label("member_id"),
             col(Account.name).label("member_name"),
             col(Account.account_email).label("member_email"),
-            col(Account.role),
-        )
+            col(Account.role).label("role"),
+            func.count(DATASET.dataset_id).label("datasets")
+        ).group_by(Account.account_id, Account.name, Account.account_email, Account.role)
 
-@dataclass(frozen=True)
-class NerListItem:
+class NerListItem(BaseDto):
     ner_id:int
     label:str
     last_updated:datetime | None
@@ -43,8 +43,7 @@ class NerListItem:
             .group_by(NER.ner_id)
         )
 
-@dataclass(frozen=True)
-class IntentListItem:
+class IntentListItem(BaseDto):
     intent_id:int
     label:str
     last_updated:datetime
@@ -60,8 +59,7 @@ class IntentListItem:
         .outerjoin(DatasetIntent, Intent.intent_id == DatasetIntent.intent_id)
         .group_by(Intent.intent_id, Intent.label))
 
-@dataclass(frozen=True)
-class DatasetListItem:
+class DatasetListItem(BaseDto):
     dataset_id:int
     command:str
     dataset_type:DatasetType
@@ -89,31 +87,27 @@ class DatasetListItem:
 
 ID = TypeVar("ID")
 
-@dataclass(frozen=True)
-class ModificationResult(Generic[ID]):
+class ModificationResult(BaseDto, Generic[ID]):
     result_data:ID
 
-@dataclass(frozen=True)
-class AuthProfile:
+class AuthProfile(BaseDto):
     account_id:int
     account_name:str
     account_email:str
     account_role:str
-    profile_url:str
+    profile_url:str | None
 
-@dataclass(frozen=True)
-class AuthResult:
+class AuthResult(BaseDto):
     profile:AuthProfile
     access_token:str
     access_type:str = "Bearer"
 
-@dataclass(frozen=True)
-class Profile:
+class Profile(BaseDto):
     account_id:int
     account_name:str
     account_email:str
     account_role:str
-    profile_url:str
+    profile_url:str | None
 
     training_dataset:int
     validation_dataset:int

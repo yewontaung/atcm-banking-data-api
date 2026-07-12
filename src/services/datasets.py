@@ -1,8 +1,8 @@
 from sqlalchemy.exc import IntegrityError
-from sqlmodel import Session, col, select
+from sqlmodel import Session
 
 from data.database import safe_call
-from data.models import Dataset, DatasetIntent, DatasetIntentNer, Intent
+from data.models import Dataset, DatasetIntent, DatasetIntentNer
 from dtos.inputs import DatasetForm
 from dtos.outputs import DatasetListItem, ModificationResult
 from dtos.searches import DatasetSearch
@@ -14,9 +14,13 @@ def search(search:DatasetSearch, page:int, size:int, session:Session) -> Paginat
     sql = search.where(DatasetListItem.select()).where(Dataset.deleted == False).limit(size).offset(page - 1)
     result = session.exec(statement=sql).all()
     items = [DatasetListItem(
-                dataset.dataset_id, dataset.command, 
-                dataset.dataset_type, dataset.approved,
-                dataset.member_id, member_name, dataset.updated_at
+                dataset_id=dataset.dataset_id, 
+                command=dataset.command, 
+                dataset_type=dataset.dataset_type, 
+                approved=dataset.approved,
+                member_id=dataset.member_id, 
+                member_name=member_name, 
+                last_updated=dataset.updated_at
             ) for dataset, member_name in result]
 
     count = search.where(DatasetListItem.count()).where(Dataset.deleted == False)
@@ -39,7 +43,7 @@ def approve(dataset_id:int, user_id:str, session:Session) -> ModificationResult[
     dataset.approved = True
     session.add(dataset)
     session.commit()
-    return ModificationResult(dataset.dataset_id)
+    return ModificationResult(result_data=dataset.dataset_id)
 
 def save(form:DatasetForm, user_id:str, session:Session) -> ModificationResult[int]:
     try:
@@ -63,7 +67,7 @@ def save(form:DatasetForm, user_id:str, session:Session) -> ModificationResult[i
         session.add_all(intents)
         session.commit()
 
-        return ModificationResult(dataset.dataset_id)
+        return ModificationResult(result_data=dataset.dataset_id)
     except IntegrityError as e:
         raise AppBusinessException("Data validation failed. Check input value again.")
     
@@ -91,7 +95,7 @@ def save_jsons(forms:list[DatasetForm], user_id:int, session:Session) -> Modific
         
         session.commit()
 
-        return ModificationResult(result_id_list)
+        return ModificationResult(result_data=result_id_list)
     except IntegrityError as e:
         raise AppBusinessException("Data validation failed. Check input value again.")
 

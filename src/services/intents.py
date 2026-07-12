@@ -3,7 +3,7 @@ from datetime import datetime, timezone
 from sqlmodel import Session, col, func, select
 
 from data.database import safe_call
-from data.models import NER, Dataset, DatasetIntent, Intent
+from data.models import NER, DatasetIntent, Intent
 from dtos.inputs import IntentForm
 from dtos.outputs import IntentListItem, ModificationResult
 from utils.exceptions import AppBusinessException
@@ -16,10 +16,11 @@ def search(q:str | None, session:Session) -> list[IntentListItem]:
     result = session.exec(statement=sql).all()
     return [
         IntentListItem(
-            item.intent_id, item.label, 
-            item.updated_at or item.created_at, 
-            dataset,
-            [ner.label for ner in item.ners]
+            intent_id=item.intent_id, 
+            label=item.label, 
+            last_updated=item.updated_at or item.created_at, 
+            dataset=dataset,
+            ners=[ner.label for ner in item.ners]
         ) for item, dataset in result]
 
 def save(form:IntentForm, user_id:str, session:Session):
@@ -39,7 +40,7 @@ def save(form:IntentForm, user_id:str, session:Session):
     session.commit()
     session.refresh(intent)
     
-    return ModificationResult(intent.intent_id)
+    return ModificationResult(result_data=intent.intent_id)
 
 def delete(intent_id:int, session:Session) -> ModificationResult[int]:
     intent = safe_call(session.get(Intent, intent_id), "Intent", "intent_id", intent_id)
@@ -49,4 +50,4 @@ def delete(intent_id:int, session:Session) -> ModificationResult[int]:
         raise AppBusinessException(f"Intent with intent_id: {intent_id} cannot be deleted because it has {total} datasets.")
     session.delete(intent)
     session.commit()
-    return ModificationResult(intent_id)
+    return ModificationResult(result_data=intent_id)

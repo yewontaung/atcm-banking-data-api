@@ -14,7 +14,11 @@ def search(q:str | None, session:Session) -> list[NerListItem]:
         sql = sql.where(col(NER.label).ilike(f"{q}%"))
     result = session.exec(statement=sql).all()
 
-    return [NerListItem(item.ner_id, item.label, item.updated_at or item.created_at, intent) for item, intent in result]
+    return [NerListItem(
+        ner_id=item.ner_id, 
+        label=item.label, 
+        last_updated=item.updated_at or item.created_at, 
+        intents=intents) for item, intents in result]
 
 def save(form:NerForm, user_id:str, session:Session) -> ModificationResult[int]:
     if session.exec(select(NER).where(NER.label == form.label)).one_or_none():
@@ -23,4 +27,4 @@ def save(form:NerForm, user_id:str, session:Session) -> ModificationResult[int]:
     session.add(ner)
     session.commit()
     session.refresh(ner)
-    return ModificationResult(ner.ner_id)
+    return ModificationResult(result_data=ner.ner_id)

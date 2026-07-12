@@ -3,7 +3,7 @@ from datetime import datetime, timezone
 from sqlmodel import Session, desc, select
 
 from data.enums import MemberRole
-from data.models import Account
+from data.models import Account, Dataset
 from dtos.inputs import MemberForm
 from dtos.outputs import MemberListItem, ModificationResult
 from dtos.searches import MemberSearch
@@ -14,9 +14,12 @@ from utils.singletons import hash_password
 
 def search(search:MemberSearch, user_id:str, session:Session) -> list[MemberListItem]:
     
-    sql = search.where(MemberListItem.select()).order_by(desc(Account.account_id))
-    result = session.exec(statement=sql).all()
-    return [MemberListItem(*item, 0) for item in result]
+    sql = search.where(
+        MemberListItem.select(Dataset).select_from(Account)
+        .join(Dataset, Dataset.member_id == Account.account_id, isouter=True)
+    ).order_by(desc(Account.account_id))
+    result = session.execute(statement=sql).all()
+    return [MemberListItem(**item._mapping) for item in result]
 
 def profile(member_id:int):...
 
@@ -33,4 +36,4 @@ def save(form:MemberForm, user_id:str, session:Session)-> ModificationResult[int
     session.add(account)
     session.commit()
     session.refresh(account)
-    return ModificationResult(account.account_id)
+    return ModificationResult(result_data=account.account_id)

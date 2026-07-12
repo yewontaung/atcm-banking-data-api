@@ -1,15 +1,15 @@
 from typing import Literal, TypeVar
 
-from pydantic import BaseModel
 from sqlalchemy import Select
 from sqlmodel import col, or_
 
 from data.enums import MemberRole
 from data.models import Account, Dataset, DatasetIntent, Intent
+from utils.basedto import BaseDto
 
 S = TypeVar("S", bound=Select)
 
-class MemberSearch(BaseModel):
+class MemberSearch(BaseDto):
     role:MemberRole|None = None
     keyword:str|None = None
 
@@ -24,7 +24,7 @@ class MemberSearch(BaseModel):
             )
         return select
     
-class DatasetSearch(BaseModel):
+class DatasetSearch(BaseDto):
     status:Literal["pending", "approved", None] = None
     strategy:Literal["intent", "collector", "command", None] = None
     keyword:str | None = None

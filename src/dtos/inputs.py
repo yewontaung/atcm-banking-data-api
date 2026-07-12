@@ -1,42 +1,43 @@
 from datetime import datetime, timezone
 
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import EmailStr, Field
 
 from data.enums import DatasetType
 from data.models import Dataset
+from utils.basedto import BaseDto
 
 
-class MemberForm(BaseModel):
+class MemberForm(BaseDto):
     name:str = Field()
     role:str = Field()
     member_email:EmailStr
 
-class SignInForm(BaseModel):
+class SignInForm(BaseDto):
     account_email:EmailStr
     password:str = Field(min_length=6)
 
-class NerForm(BaseModel):
+class NerForm(BaseDto):
     label:str = Field()
 
-class IntentForm(BaseModel):
+class IntentForm(BaseDto):
     label:str
     description:str
     ners:list[int]
 
-class DatasetIntentNerItem(BaseModel):
+class DatasetIntentNerItem(BaseDto):
     ner_id:int
     label:str
     start_index:int
     end_index:int
 
-class DatasetIntentItem(BaseModel):
+class DatasetIntentItem(BaseDto):
     intent_id:int
     label:str
     start_index:int
     end_index:int
     ners:list[DatasetIntentNerItem]
 
-class DatasetForm(BaseModel):
+class DatasetForm(BaseDto):
     command:str
     dataset_type:DatasetType
     intents:list[DatasetIntentItem]
@@ -50,7 +51,7 @@ class DatasetForm(BaseModel):
             updated_at=datetime.now(tz=timezone.utc),
         )
     
-class PasswordForm(BaseModel):
+class PasswordForm(BaseDto):
     old_password:str = Field(min_length=6)
     new_password:str = Field(min_length=6)
     confirm_password:str = Field(min_length=6)
