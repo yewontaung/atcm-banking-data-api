@@ -2,6 +2,7 @@ from datetime import datetime
 from typing import Generic, Type, TypeVar
 
 import sqlalchemy
+from sqlalchemy.orm import selectinload
 from sqlmodel import col, desc, distinct, func, select
 
 from data.enums import DatasetType, MemberRole
@@ -55,7 +56,11 @@ class IntentListItem(BaseDto):
         return (select(
             Intent,
             func.count(col(DatasetIntent.dataset_id))
-        ).select_from(Intent)
+        )
+        .options(
+            selectinload(Intent.ners)
+        )
+        .select_from(Intent)
         .outerjoin(DatasetIntent, Intent.intent_id == DatasetIntent.intent_id)
         .group_by(Intent.intent_id, Intent.label))
 

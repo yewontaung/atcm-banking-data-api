@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 
-from sqlmodel import Session, col, func, select
+from sqlmodel import Session, col, desc, func, select
 
 from data.database import safe_call
 from data.models import NER, DatasetIntent, Intent
@@ -10,7 +10,7 @@ from utils.exceptions import AppBusinessException
 
 
 def search(q:str | None, session:Session) -> list[IntentListItem]:
-    sql = IntentListItem.select()
+    sql = IntentListItem.select().order_by(desc(Intent.created_at))
     if q:
         sql = sql.where(col(Intent.label).ilike(f"{q}%"))
     result = session.exec(statement=sql).all()
