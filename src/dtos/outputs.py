@@ -49,7 +49,12 @@ class IntentListItem(BaseDto):
     label:str
     last_updated:datetime
     dataset:int
-    ners:list[str]
+
+    class NerInfo(BaseDto):
+        ner_id:int
+        label:str
+
+    ners:list[NerInfo]
 
     @classmethod
     def select(cls):

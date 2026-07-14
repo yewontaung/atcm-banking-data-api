@@ -20,7 +20,7 @@ def search(q:str | None, session:Session) -> list[IntentListItem]:
             label=item.label, 
             last_updated=item.updated_at or item.created_at, 
             dataset=dataset,
-            ners=[ner.label for ner in item.ners]
+            ners=[IntentListItem.NerInfo(ner_id=ner.ner_id, label=ner.label) for ner in item.ners]
         ) for item, dataset in result]
 
 def save(form:IntentForm, user_id:str, session:Session):
