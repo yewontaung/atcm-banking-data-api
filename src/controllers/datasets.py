@@ -30,6 +30,11 @@ def recycle_bin(
     session:Session = Depends(get_session)):
     return datasets.recycle_bin(page, size, session)
 
+@router.delete("/{dataset_id}/bin")
+@auth.has_roles("Admin", "Supervisor")
+def soft_delete(dataset_id:int, session:Session = Depends(get_session)):
+    return datasets.soft_delete(dataset_id, session)
+
 @router.post("/", response_model=ModificationResult[int])
 @auth.authenticated
 def save(form:DatasetForm, session:Session = Depends(get_session)):

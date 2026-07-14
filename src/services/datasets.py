@@ -100,10 +100,11 @@ def save_jsons(forms:list[DatasetForm], user_id:int, session:Session) -> Modific
         raise AppBusinessException("Data validation failed. Check input value again.")
 
 def soft_delete(dataset_id:int, session:Session):
-    dataset = safe_call(Dataset, "Dataset", "dataset_id", dataset_id)
+    dataset = safe_call(session.get(Dataset, dataset_id), "Dataset", "dataset_id", dataset_id)
     dataset.deleted = True
     session.add(dataset)
     session.commit()
+    return ModificationResult(result_data=dataset_id)
 
 def delete(dataset_id:int, session:Session):
     dataset = safe_call(Dataset, "Dataset", "dataset_id", dataset_id)
