@@ -6,7 +6,7 @@ from sqlalchemy.orm import selectinload
 from sqlmodel import col, desc, distinct, func, select
 
 from data.enums import DatasetType, MemberRole
-from data.models import NER, Account, Dataset, DatasetIntent, Intent, NerIntentLink
+from data.models import NER, Account, Dataset, DatasetIntent, DatasetIntentNer, Intent, NerIntentLink
 from utils.basedto import BaseDto
 
 
@@ -123,3 +123,55 @@ class Profile(BaseDto):
     training_dataset:int
     validation_dataset:int
     testing_dataset:int
+
+class DatasetIntentNerAlignment(BaseDto):
+    ner_id:int
+    label:str
+    start_index:int
+    end_index:int
+    intent_id:int
+
+    @staticmethod
+    def from_(ner:DatasetIntentNer) -> DatasetIntentNerAlignment:
+        return DatasetIntentNerAlignment(
+            ner_id=ner.ner_id,
+            label=ner.ner.label,
+            start_index=ner.start_index,
+            end_index=ner.end_index,
+            intent_id=ner.intent_id,
+        )
+
+class DatasetDetailIntent(BaseDto):
+    intent_id:int
+    label:str
+    start_index:int
+    end_index:int
+
+    @staticmethod
+    def from_(intent:DatasetIntent) -> DatasetDetailIntent:
+        return DatasetDetailIntent(
+            intent_id=intent.intent_id,
+            label=intent.intent.label,
+            start_index=intent.start_index,
+            end_index=intent.end_index,
+        )
+
+class DatasetInfo(BaseDto):
+    dataset_id:int
+    member_id:int
+    member_name:str
+    member_role:MemberRole
+    dataset_type:DatasetType
+    approved:bool
+    deleted:bool
+    last_updated:datetime
+
+class DatasetDetail(BaseDto):
+    dataset_id:int
+    command:str
+    intents:list[DatasetDetailIntent]
+    alignments:list[DatasetIntentNerAlignment]
+
+class DatasetDetailResult(BaseDto):
+    info:DatasetInfo
+    dataset:DatasetDetail

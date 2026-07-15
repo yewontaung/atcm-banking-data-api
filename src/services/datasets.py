@@ -1,11 +1,12 @@
+from sqlalchemy.orm import selectinload
 from sqlalchemy.exc import IntegrityError
-from sqlmodel import Session
+from sqlmodel import Session, select
 import sqlmodel
 
 from data.database import safe_call
 from data.models import Dataset, DatasetIntent, DatasetIntentNer
 from dtos.inputs import DatasetForm
-from dtos.outputs import DatasetListItem, ModificationResult
+from dtos.outputs import DatasetDetail, DatasetDetailIntent, DatasetDetailResult, DatasetInfo, DatasetIntentNerAlignment, DatasetListItem, ModificationResult
 from dtos.searches import DatasetSearch
 from utils.exceptions import AppBusinessException
 from utils.paginations import PaginationResult
@@ -47,6 +48,8 @@ def recycle_bin(page:int, size:int, session:Session) -> PaginationResult[Dataset
 
 def approve(dataset_id:int, user_id:str, session:Session) -> ModificationResult[int]:
     dataset = safe_call(session.get(Dataset, dataset_id), "Dataset", "dataset_id", dataset_id)
+    if dataset.deleted:
+        raise AppBusinessException("Cannot approved dataset from bin.")
     dataset.approved = True
     session.add(dataset)
     session.commit()
@@ -119,3 +122,47 @@ def delete(dataset_id:int, session:Session):
     session.delete(dataset)
     session.commit()
     return ModificationResult(result_data=dataset_id)
+
+def find_by_id(dataset_id:int, session:Session) -> DatasetDetailResult:
+    
+    dataset = session.exec(select(Dataset).options(
+        selectinload(Dataset.intents)
+            .selectinload(DatasetIntent.intent),
+        selectinload(Dataset.intents)
+            .selectinload(DatasetIntent.ners)
+            .selectinload(DatasetIntentNer.ner),
+        selectinload(Dataset.member)
+    ).where(Dataset.dataset_id == dataset_id)).first()
+    
+    dataset = safe_call(dataset, "Dataset", "dataset_id", dataset_id)
+
+    detail = DatasetDetail(
+        dataset_id=dataset.dataset_id,
+        command=dataset.command,
+        intents=[DatasetDetailIntent.from_(item) for item in dataset.intents],
+        alignments=[DatasetIntentNerAlignment.from_(ner) 
+                    for item in dataset.intents 
+                    for ner in item.ners
+                ]
+    )
+
+    return DatasetDetailResult(
+        dataset=detail,
+        info=DatasetInfo(
+            dataset_id=dataset.dataset_id,
+            member_id=dataset.member_id,
+            member_name=dataset.member.name,
+            member_role=dataset.member.role,
+            dataset_type=dataset.dataset_type,
+            last_updated=dataset.updated_at,
+            approved=dataset.approved,
+            deleted=dataset.deleted,
+        )
+    )
+
+def restore(dataset_id:int, session:Session) -> ModificationResult[int]:
+    dataset = safe_call(session.get(Dataset, dataset_id), "Dataset", "dataset_id", dataset_id)
+    dataset.deleted = False
+    session.add(dataset)
+    session.commit()
+    return ModificationResult(result_data=dataset.dataset_id)

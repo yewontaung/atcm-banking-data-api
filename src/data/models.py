@@ -17,6 +17,8 @@ class Account(SQLModel, table=True):
     created_at:datetime = Field()
     updated_at:datetime | None = Field(nullable=True)
 
+    datasets:list["Dataset"] = Relationship(back_populates="member")
+
 class NerIntentLink(SQLModel, table=True):
     ner_id:int = Field(primary_key=True, foreign_key="ner.ner_id")
     intent_id:int = Field(primary_key=True, foreign_key="intent.intent_id")
@@ -44,10 +46,20 @@ class Dataset(SQLModel, table=True):
     member_id:int = Field(nullable=False)
     updated_at:datetime = Field(nullable=False)
     deleted:bool = Field(nullable=False, default=False)
+
+    member:Account = Relationship(back_populates="datasets")
     
     intents:list["DatasetIntent"] = Relationship(back_populates="dataset", sa_relationship_kwargs={
         "passive_deletes": True
     })
+
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ["member_id"],
+            ["account.account_id"],
+            name="fk_dataset_member"
+        ),
+    )
 
 class DatasetIntent(SQLModel, table=True):
     intent_id:int = Field(primary_key=True, foreign_key="intent.intent_id")
@@ -55,6 +67,9 @@ class DatasetIntent(SQLModel, table=True):
     start_index:int = Field(nullable=False)
     end_index:int = Field(nullable=False)
     dataset:Dataset = Relationship(back_populates="intents")
+
+    intent:Intent = Relationship()
+
     ners:list["DatasetIntentNer"] = Relationship(back_populates="intent", sa_relationship_kwargs={
         "passive_deletes": True
     })
@@ -75,6 +90,7 @@ class DatasetIntentNer(SQLModel, table=True):
     start_index:int = Field(nullable=False)
     end_index:int = Field(nullable=False)
 
+    ner:NER = Relationship()
     intent:DatasetIntent = Relationship(back_populates="ners")
 
     __table_args__ = (
