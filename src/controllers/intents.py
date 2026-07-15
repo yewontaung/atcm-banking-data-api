@@ -3,7 +3,7 @@ from sqlmodel import Session
 
 from configs import auth
 from data.database import get_session
-from dtos.inputs import IntentForm
+from dtos.inputs import IntentEditForm, IntentForm
 from dtos.outputs import IntentListItem, ModificationResult
 from services import intents
 from utils.managers.security import SecurityContext
@@ -28,3 +28,8 @@ def save(form:IntentForm, session:Session = Depends(get_session)):
 @auth.has_roles("Admin")
 def delete(intent_id:int, session:Session = Depends(get_session)):
     return intents.delete(intent_id, session)
+
+@router.put("/{intent_id}", response_model=ModificationResult[int])
+@auth.has_roles("Admin")
+def edit(intent_id:int, form:IntentEditForm, session:Session = Depends(get_session)):
+    return intents.edit(intent_id, form, session)

@@ -33,6 +33,7 @@ class NER(SQLModel, table=True):
 class Intent(SQLModel, table=True):
     intent_id:int = Field(primary_key=True, default=None)
     label:str = Field(unique=True, nullable=False)
+    description:str = Field(nullable=True, default="")
     created_at:datetime = Field()
     updated_at:datetime | None = Field(nullable=True)
     created_by:int = Field(foreign_key="account.account_id")

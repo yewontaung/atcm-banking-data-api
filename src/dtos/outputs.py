@@ -47,8 +47,9 @@ class NerListItem(BaseDto):
 class IntentListItem(BaseDto):
     intent_id:int
     label:str
-    last_updated:datetime
+    description:str
     dataset:int
+    last_updated:datetime
 
     class NerInfo(BaseDto):
         ner_id:int

@@ -24,6 +24,10 @@ class IntentForm(BaseDto):
     description:str
     ners:list[int]
 
+class IntentEditForm(BaseDto):
+    label:str = Field()
+    description:str = Field()
+
 class DatasetIntentNerItem(BaseDto):
     ner_id:int
     label:str
