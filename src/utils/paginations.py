@@ -1,10 +1,10 @@
-from dataclasses import dataclass
 from typing import Generic, TypeVar
+
+from utils.basedto import BaseDto
 
 T = TypeVar("T")
 
-@dataclass(frozen=True)
-class PaginationResult(Generic[T]):
+class PaginationResult(BaseDto, Generic[T]):
 
     items:list[T]
     page:int

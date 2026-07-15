@@ -2,7 +2,6 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-import uvicorn
 
 from app import handlers, routes
 from data import database
@@ -17,13 +16,13 @@ async def lifespan(app:FastAPI):
     database.seed_admin()
 
     print("==============================")
-    print("ACTM API is started.")
+    print("ATCM API is started.")
     print("==============================")
     
     yield
 
     print("==============================")
-    print("ACTM API is ended.")
+    print("ATCM API is ended.")
     print("==============================")
 
 app = FastAPI(lifespan=lifespan)
@@ -44,5 +43,5 @@ app.add_middleware(
 )
 
 
-if __name__ == "__main__":
-    uvicorn.run(app="main:app", reload=True)
+# if __name__ == "__main__":
+#     uvicorn.run(app="main:app", reload=True)
