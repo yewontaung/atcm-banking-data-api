@@ -56,4 +56,4 @@ def change_password(form:PasswordForm, user_id:str, session:Session) -> Modifica
     account.hashed_password = hash_password(form.new_password)
     session.add(account)
     session.commit()
-    return ModificationResult(account.account_id)
+    return ModificationResult(result_data=account.account_id)
