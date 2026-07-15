@@ -1,5 +1,6 @@
 from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session
+import sqlmodel
 
 from data.database import safe_call
 from data.models import Dataset, DatasetIntent, DatasetIntentNer
@@ -20,23 +21,29 @@ def search(search:DatasetSearch, page:int, size:int, session:Session) -> Paginat
                 approved=dataset.approved,
                 member_id=dataset.member_id, 
                 member_name=member_name, 
-                last_updated=dataset.updated_at
+                last_updated=dataset.updated_at,
+                deleted=dataset.deleted,
             ) for dataset, member_name in result]
 
     count = search.where(DatasetListItem.count()).where(Dataset.deleted == False)
     total = session.exec(count).one_or_none()
-    return PaginationResult(items, page, size, total or 0)
+    return PaginationResult(items=items, page=page, size=size, total=total or 0)
 
 def recycle_bin(page:int, size:int, session:Session) -> PaginationResult[DatasetListItem]:
     result = session.exec(DatasetListItem.select().where(Dataset.deleted == True)).all()
     items = [DatasetListItem(
-                dataset.dataset_id, dataset.command, 
-                dataset.dataset_type, dataset.approved,
-                dataset.member_id, member_name, dataset.updated_at
+                dataset_id=dataset.dataset_id, 
+                command=dataset.command, 
+                dataset_type=dataset.dataset_type, 
+                approved=dataset.approved,
+                member_id=dataset.member_id, 
+                member_name=member_name, 
+                last_updated=dataset.updated_at,
+                deleted=dataset.deleted,
             ) for dataset, member_name in result]
     count = DatasetListItem.count().where(Dataset.deleted == True)
     total = session.exec(count).one_or_none()
-    return PaginationResult(items, page, size, total or 0)
+    return PaginationResult(items=items, page=page, size=size, total=total or 0)
 
 def approve(dataset_id:int, user_id:str, session:Session) -> ModificationResult[int]:
     dataset = safe_call(session.get(Dataset, dataset_id), "Dataset", "dataset_id", dataset_id)
@@ -107,6 +114,8 @@ def soft_delete(dataset_id:int, session:Session):
     return ModificationResult(result_data=dataset_id)
 
 def delete(dataset_id:int, session:Session):
-    dataset = safe_call(Dataset, "Dataset", "dataset_id", dataset_id)
+    dataset = safe_call(session.get(Dataset, dataset_id), "Dataset", "dataset_id", dataset_id)
+    session.exec(sqlmodel.delete(DatasetIntent))
     session.delete(dataset)
     session.commit()
+    return ModificationResult(result_data=dataset_id)

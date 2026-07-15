@@ -77,6 +77,7 @@ class DatasetListItem(BaseDto):
     member_id:int
     member_name:str
     last_updated:datetime
+    deleted:bool
 
     @classmethod
     def select(cls):
