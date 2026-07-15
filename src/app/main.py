@@ -11,7 +11,7 @@ from utils.managers.security import SecurityException
 @asynccontextmanager
 async def lifespan(app:FastAPI):
 
-    database.create_tables()
+    # database.create_tables()
 
     database.seed_admin()
 

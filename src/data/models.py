@@ -45,15 +45,28 @@ class Dataset(SQLModel, table=True):
     updated_at:datetime = Field(nullable=False)
     deleted:bool = Field(nullable=False, default=False)
     
-    intents:list["DatasetIntent"] = Relationship(back_populates="dataset")
+    intents:list["DatasetIntent"] = Relationship(back_populates="dataset", sa_relationship_kwargs={
+        "passive_deletes": True
+    })
 
 class DatasetIntent(SQLModel, table=True):
     intent_id:int = Field(primary_key=True, foreign_key="intent.intent_id")
-    dataset_id:int = Field(primary_key=True, foreign_key="dataset.dataset_id")
+    dataset_id:int = Field(primary_key=True)
     start_index:int = Field(nullable=False)
     end_index:int = Field(nullable=False)
     dataset:Dataset = Relationship(back_populates="intents")
-    ners:list["DatasetIntentNer"] = Relationship(back_populates="intent")
+    ners:list["DatasetIntentNer"] = Relationship(back_populates="intent", sa_relationship_kwargs={
+        "passive_deletes": True
+    })
+
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ["dataset_id"],
+            ["dataset.dataset_id"],
+            ondelete="CASCADE",
+            name="datasetintent_dataset"
+        ),
+    )
 
 class DatasetIntentNer(SQLModel, table=True):
     ner_id:int = Field(primary_key=True, foreign_key="ner.ner_id")
@@ -67,6 +80,8 @@ class DatasetIntentNer(SQLModel, table=True):
     __table_args__ = (
         ForeignKeyConstraint(
             ["intent_id", "dataset_id"],
-            ["datasetintent.intent_id", "datasetintent.dataset_id"]
+            ["datasetintent.intent_id", "datasetintent.dataset_id"],
+            ondelete="CASCADE",
+            name="fk_datasetintentner_datasetintent_dataset"
         ),
     )
