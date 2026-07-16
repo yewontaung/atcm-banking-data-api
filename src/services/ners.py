@@ -1,9 +1,9 @@
 from datetime import datetime, timezone
 
-from sqlmodel import Session, col, desc, select
+from sqlmodel import Session, col, desc, func, select
 
 from data.database import safe_call
-from data.models import NER
+from data.models import NER, NerIntentLink
 from dtos.inputs import NerForm
 from dtos.outputs import ModificationResult, NerListItem
 from utils.exceptions import AppBusinessException
@@ -27,4 +27,24 @@ def save(form:NerForm, user_id:str, session:Session) -> ModificationResult[int]:
     session.add(ner)
     session.commit()
     session.refresh(ner)
+    return ModificationResult(result_data=ner.ner_id)
+
+def delete(ner_id:int, session:Session) -> ModificationResult[int]:
+    ner = safe_call(session.get(NER, ner_id), "Named Entity", "ner_id", ner_id)
+    total = session.exec(select(
+        func.count(NerIntentLink.ner_id)
+    ).select_from(NerIntentLink).where(NerIntentLink.ner_id == ner.ner_id)).one_or_none()
+
+    if total:
+        raise AppBusinessException(f"Ner cannot be deleted because it has {total} datasets.")
+    
+    session.delete(ner)
+    session.commit()
+    return ModificationResult(result_data=ner_id)
+
+def update(ner_id:int, form:NerForm, session:Session) -> ModificationResult[int]:
+    ner = safe_call(session.get(NER, ner_id), "Named Entity", "ner_id", ner_id)
+    ner.label = form.label
+    session.add(ner)
+    session.commit()
     return ModificationResult(result_data=ner.ner_id)
