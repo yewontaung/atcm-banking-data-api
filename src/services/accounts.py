@@ -1,8 +1,9 @@
 import jwt
-from sqlmodel import Session, select
+from sqlmodel import Session, func, select
 
 from data.database import safe_call
-from data.models import Account
+from data.enums import DatasetType
+from data.models import Account, Dataset
 from dtos.inputs import PasswordForm, SignInForm
 from dtos.outputs import AuthProfile, AuthResult, ModificationResult, Profile
 from utils import env
@@ -33,15 +34,35 @@ def sign_in(form:SignInForm, session:Session) -> AuthResult:
 
 def profile(user_id:str, session:Session) -> Profile:
     account = safe_call(session.get(Account, user_id), "Account", "account_id", user_id)
+    DATASET_COUNT = (select(
+        Dataset.dataset_type,
+        func.count(Dataset.dataset_id)
+    ).select_from(Dataset)
+    .where(Dataset.member_id == account.account_id)
+    .group_by(Dataset.dataset_type))
+
+    training_dataset = 0
+    validation_dataset = 0
+    testing_dataset = 0
+
+    result = session.exec(DATASET_COUNT).all()
+
+    for dataset_type, count in result:
+        match dataset_type:
+            case DatasetType.Training: training_dataset += count
+            case DatasetType.Validation: validation_dataset += count
+            case DatasetType.Testing: validation_dataset += count
+
+
     return Profile(
         account_id=account.account_id,
         account_name=account.name,
         account_email=account.account_email,
         account_role=account.role,
         profile_url=account.profile_url,
-        training_dataset=0,
-        validation_dataset=0,
-        testing_dataset=0,
+        training_dataset=training_dataset,
+        validation_dataset=validation_dataset,
+        testing_dataset=testing_dataset,
     )
 
 def change_password(form:PasswordForm, user_id:str, session:Session) -> ModificationResult[int]:

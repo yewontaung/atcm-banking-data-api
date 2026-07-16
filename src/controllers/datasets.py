@@ -46,7 +46,7 @@ def recycle_bin(
 def delete(dataset_id:int, session:Session = Depends(get_session)):
     return datasets.delete(dataset_id=dataset_id, session=session)
 
-@router.put("/bin/{dataset_id}")
+@router.put("/bin/restore/{dataset_id}")
 @auth.has_roles("Admin")
 def restore(dataset_id:int, session:Session = Depends(get_session)):
     return datasets.restore(dataset_id=dataset_id, session=session)
@@ -61,7 +61,7 @@ def detail(dataset_id:int, session:Session = Depends(get_session)):
 def soft_delete(dataset_id:int, session:Session = Depends(get_session)):
     return datasets.soft_delete(dataset_id, session)
 
-@router.put("/{dataset_id}", response_model=ModificationResult[int])
+@router.put("/approve/{dataset_id}", response_model=ModificationResult[int])
 @auth.has_roles("Admin", "Supervisor")
 def approve(dataset_id:int, session:Session = Depends(get_session)):
     return datasets.approve(dataset_id=dataset_id, user_id=SecurityContext.get_user().user_id, session=session)
