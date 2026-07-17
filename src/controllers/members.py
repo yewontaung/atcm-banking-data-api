@@ -30,6 +30,7 @@ def detail(member_id:int):
 def save(form:MemberForm, session:Session = Depends(database.get_session)):
     return members.save(form, SecurityContext.get_user().user_id, session)
 
-@router.put("/{member_id}/role")
-def update(member_id:int):
-    ...
+@router.put("/{member_id}")
+@auth.has_roles("Admin")
+def update(member_id:int, form:MemberForm, session:Session = Depends(database.get_session)):
+    return members.update(member_id, form, session)

@@ -1,7 +1,8 @@
 from datetime import datetime, timezone
 
-from sqlmodel import Session, desc, select
+from sqlmodel import Session, desc, func, select
 
+from data.database import safe_call
 from data.enums import MemberRole
 from data.models import Account, Dataset
 from dtos.inputs import MemberForm
@@ -37,3 +38,19 @@ def save(form:MemberForm, user_id:str, session:Session)-> ModificationResult[int
     session.commit()
     session.refresh(account)
     return ModificationResult(result_data=account.account_id)
+
+def update(member_id:int, form:MemberForm, session:Session) -> ModificationResult[int]:
+    member = safe_call(session.get(Account, member_id), "Member", "member_id", member_id)
+    if not form.is_valid(member):
+        raise AppBusinessException("Cannot update same data.")
+    if session.exec(select(func.count(Account.account_id)).where(Account.account_email == form.member_email, Account.account_id != member.account_id)).one_or_none():
+        raise AppBusinessException(f"{form.member_email} already exists. Please use another email address.")
+    
+    member.account_email = form.member_email
+    member.name = form.name
+    member.role = form.role
+
+    session.add(member)
+    session.commit()
+
+    return ModificationResult(result_data=member.account_id)

@@ -2,15 +2,18 @@ from datetime import datetime, timezone
 
 from pydantic import EmailStr, Field
 
-from data.enums import DatasetType
-from data.models import Dataset
+from data.enums import DatasetType, MemberRole
+from data.models import Account, Dataset
 from utils.basedto import BaseDto
 
 
 class MemberForm(BaseDto):
     name:str = Field()
-    role:str = Field()
+    role:MemberRole = Field()
     member_email:EmailStr
+
+    def is_valid(self, member:Account) -> bool:
+        return (self.name != member.name or self.role != member.role or self.member_email != member.account_email)
 
 class SignInForm(BaseDto):
     account_email:EmailStr
