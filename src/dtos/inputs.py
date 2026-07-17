@@ -52,6 +52,7 @@ class DatasetForm(BaseDto):
             dataset_type=self.dataset_type,
             approved=False,
             member_id=int(user_id),
+            created_at=datetime.now(tz=timezone.utc),
             updated_at=datetime.now(tz=timezone.utc),
         )
     

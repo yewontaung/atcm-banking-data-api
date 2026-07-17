@@ -45,6 +45,7 @@ class Dataset(SQLModel, table=True):
     dataset_type:DatasetType = Field(nullable=False)
     approved:bool = Field(nullable=False)
     member_id:int = Field(nullable=False)
+    created_at:datetime = Field(nullable=True)
     updated_at:datetime = Field(nullable=False)
     deleted:bool = Field(nullable=False, default=False)
 

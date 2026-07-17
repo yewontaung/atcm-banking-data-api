@@ -176,3 +176,39 @@ class DatasetDetail(BaseDto):
 class DatasetDetailResult(BaseDto):
     info:DatasetInfo
     dataset:DatasetDetail
+
+
+class DatasetMeta(BaseDto):
+    total_datasets:int
+    total_intents:int
+    total_ners:int
+
+class DatasetAnalysis(BaseDto):
+    training_datasets:int
+    validation_datasets:int
+    testing_datasets:int
+
+class CollectRate(BaseDto):
+    member_id:int
+    member_name:str
+    member_profile:str | None
+    collected_data:int
+
+    @staticmethod
+    def select():
+        return select(
+            Account.account_id,
+            Account.name,
+            Account.profile_url,
+            func.count(Dataset.dataset_id)
+        ).group_by(
+            Account.account_id,
+            Account.name,
+            Account.profile_url
+        )
+
+class DashboardAnalysis(BaseDto):
+    dataset_meta:DatasetMeta
+    dataset_analysis:DatasetAnalysis
+    today_collect_rate:list[CollectRate]
+    yesterday_collect_rate:list[CollectRate]
