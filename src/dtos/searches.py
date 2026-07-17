@@ -3,7 +3,7 @@ from typing import Literal, TypeVar
 from sqlalchemy import Select
 from sqlmodel import col, or_
 
-from data.enums import MemberRole
+from data.enums import DatasetType, MemberRole
 from data.models import Account, Dataset, DatasetIntent, Intent
 from utils.basedto import BaseDto
 
@@ -27,11 +27,14 @@ class MemberSearch(BaseDto):
 class DatasetSearch(BaseDto):
     status:Literal["pending", "approved", None] = None
     strategy:Literal["intent", "collector", "command", None] = None
+    dataset_type:DatasetType | None = None
     keyword:str | None = None
 
     def where(self, select:S) -> S:
         if self.status:
             select = select.where(Dataset.approved == (self.status == "approved"))
+        if self.dataset_type:
+            select = select.where(Dataset.dataset_type == self.dataset_type)
         if self.strategy and self.keyword:
             match self.strategy:
                 case "intent":select = (
