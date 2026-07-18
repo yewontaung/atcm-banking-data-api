@@ -12,6 +12,7 @@ from utils.basedto import BaseDto
 
 class MemberListItem(BaseDto):
     member_id:int
+    member_profile:str | None
     member_name:str
     member_email:str
     role:MemberRole
@@ -21,6 +22,7 @@ class MemberListItem(BaseDto):
     def select(cls, DATASET:Type[Dataset]):
         return sqlalchemy.select(
             col(Account.account_id).label("member_id"),
+            col(Account.profile_url).label("member_profile"),
             col(Account.name).label("member_name"),
             col(Account.account_email).label("member_email"),
             col(Account.role).label("role"),
