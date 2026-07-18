@@ -117,8 +117,12 @@ def soft_delete(dataset_id:int, session:Session):
     return ModificationResult(result_data=dataset_id)
 
 def delete(dataset_id:int, session:Session):
-    dataset = safe_call(session.get(Dataset, dataset_id), "Dataset", "dataset_id", dataset_id)
-    session.exec(sqlmodel.delete(DatasetIntent))
+    dataset = safe_call(
+        session.get(Dataset, dataset_id), 
+        "Dataset", 
+        "dataset_id", 
+        dataset_id)
+    
     session.delete(dataset)
     session.commit()
     return ModificationResult(result_data=dataset_id)
