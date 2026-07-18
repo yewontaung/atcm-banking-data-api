@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, UploadFile
 from sqlmodel import Session
 
 from configs import auth
@@ -14,6 +14,11 @@ router = APIRouter(prefix="/me")
 @auth.authenticated
 def profile(session:Session = Depends(database.get_session)):
     return accounts.profile(SecurityContext.get_user().user_id, session)
+
+@router.post("/profile/upload")
+@auth.authenticated
+def upload(file:UploadFile, session:Session = Depends(database.get_session)):
+    return accounts.upload_profile_image(file, SecurityContext.get_user().user_id, session)
 
 @router.post("/change-password")
 @auth.authenticated

@@ -1,3 +1,6 @@
+from pathlib import Path
+
+from fastapi import UploadFile
 import jwt
 from sqlmodel import Session, func, select
 
@@ -5,7 +8,7 @@ from data.database import safe_call
 from data.enums import DatasetType
 from data.models import Account, Dataset
 from dtos.inputs import PasswordForm, SignInForm
-from dtos.outputs import AuthProfile, AuthResult, ModificationResult, Profile
+from dtos.outputs import AuthProfile, AuthResult, ModificationResult, Profile, ProfileUploadResult
 from utils import env
 from utils.exceptions import AppBusinessException
 from utils.singletons import hash_password, verify_password
@@ -78,3 +81,28 @@ def change_password(form:PasswordForm, user_id:str, session:Session) -> Modifica
     session.add(account)
     session.commit()
     return ModificationResult(result_data=account.account_id)
+
+def upload_profile_image(file:UploadFile, user_id:str, session:Session) -> ProfileUploadResult:
+    account = safe_call(session.get(Account, user_id), "Account", "user_id", user_id)
+    extension  = Path(file.filename).suffix
+    if extension != ".jpg" and extension != ".jpeg" and extension != ".png":
+        raise AppBusinessException(f"App doesn't support {extension} files.")
+    
+    filename = f"{account.account_id}-{account.account_email.split("@")[0]}{extension}"
+
+    profile_image_dir = Path(env.PROFILE_IMAGE_DIR)
+    profile_image_dir.mkdir(parents=True, exist_ok=True)
+
+    filepath = profile_image_dir / filename
+
+    with filepath.open("wb") as buffer:
+        buffer.write(file.file.read())
+    
+    account.profile_url = f"/{env.PROFILE_IMAGE_DIR}/{filename}"
+    session.add(account)
+    session.commit()
+    session.refresh(account)
+
+    return ProfileUploadResult(image_url=account.profile_url)
+
+    return

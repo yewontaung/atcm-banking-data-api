@@ -2,6 +2,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 from app import handlers, routes
 from data import database
@@ -40,6 +41,11 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
     allow_credentials=True,
+)
+
+app.mount(
+    "/statics",
+    StaticFiles(directory="statics")
 )
 
 

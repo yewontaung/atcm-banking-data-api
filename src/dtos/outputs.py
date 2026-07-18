@@ -125,6 +125,9 @@ class Profile(BaseDto):
     validation_dataset:int
     testing_dataset:int
 
+class ProfileUploadResult(BaseDto):
+    image_url:str
+
 class DatasetIntentNerAlignment(BaseDto):
     ner_id:int
     label:str
