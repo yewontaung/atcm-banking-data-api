@@ -22,8 +22,6 @@ def search(search:MemberSearch, user_id:str, session:Session) -> list[MemberList
     result = session.execute(statement=sql).all()
     return [MemberListItem(**item._mapping) for item in result]
 
-def profile(member_id:int):...
-
 def save(form:MemberForm, user_id:str, session:Session)-> ModificationResult[int]:
     if session.exec(select(Account).where(Account.account_email == form.member_email)).one_or_none() is not None:
         raise AppBusinessException(f"Member with email: {form.member_email} has already existed.")

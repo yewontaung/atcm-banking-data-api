@@ -34,7 +34,7 @@ def save_jsons(forms:list[DatasetForm], session:Session = Depends(get_session)):
     return datasets.save_jsons(forms, SecurityContext.get_user().user_id, session)
 
 @router.get("/bin", response_model=PaginationResult[DatasetListItem])
-@auth.has_roles("Admin")
+@auth.has_roles("Admin", "Supervisor")
 def recycle_bin(
     page:int = Query(1),
     size:int = Query(10),
@@ -42,12 +42,12 @@ def recycle_bin(
     return datasets.recycle_bin(page, size, session)
 
 @router.delete("/bin/{dataset_id}")
-@auth.has_roles("Admin")
+@auth.has_roles("Admin", "Supervisor")
 def delete(dataset_id:int, session:Session = Depends(get_session)):
     return datasets.delete(dataset_id=dataset_id, session=session)
 
 @router.put("/bin/restore/{dataset_id}")
-@auth.has_roles("Admin")
+@auth.has_roles("Admin", "Supervisor")
 def restore(dataset_id:int, session:Session = Depends(get_session)):
     return datasets.restore(dataset_id=dataset_id, session=session)
 
