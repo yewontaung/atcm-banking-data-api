@@ -36,6 +36,11 @@ def save(form:DatasetForm, session:Session = Depends(get_session)):
 def save_jsons(forms:list[DatasetForm], session:Session = Depends(get_session)):
     return datasets.save_jsons(forms, SecurityContext.get_user().user_id, session)
 
+@router.get("/analysis")
+@auth.authenticated
+def analysis(session:Session = Depends(get_session)):
+    return datasets.analysis(session)
+
 @router.get("/export")
 @auth.authenticated
 def export(dataset_type:DatasetType = Query(), session:Session = Depends(get_session)):

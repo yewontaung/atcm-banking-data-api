@@ -1,13 +1,13 @@
 from sqlalchemy.orm import selectinload
 from sqlalchemy.exc import IntegrityError
-from sqlmodel import Session, select
+from sqlmodel import Session, func, select
 import sqlmodel
 
 from data.database import safe_call
 from data.enums import DatasetType
 from data.models import Dataset, DatasetIntent, DatasetIntentNer
 from dtos.inputs import DatasetForm
-from dtos.outputs import DatasetDetail, DatasetDetailIntent, DatasetDetailResult, DatasetInfo, DatasetIntentNerAlignment, DatasetListItem, ModificationResult
+from dtos.outputs import DatasetAnalysis, DatasetDetail, DatasetDetailIntent, DatasetDetailResult, DatasetInfo, DatasetIntentNerAlignment, DatasetListItem, ModificationResult
 from dtos.searches import DatasetSearch
 from utils.exceptions import AppBusinessException
 from utils.paginations import PaginationResult
@@ -197,3 +197,30 @@ def export(dataset_type:DatasetType, session:Session) -> list[DatasetDetail]:
         result.append(detail)
     
     return result
+
+def analysis(session:Session) -> DatasetAnalysis:
+    DATASETS = (select(
+        Dataset.dataset_type,
+        func.count(Dataset.dataset_id))
+    .where(
+        Dataset.deleted == False, 
+        Dataset.approved == True
+    ).group_by(Dataset.dataset_type))
+
+    total_datasets = session.exec(DATASETS).all()
+    
+    training_datasets = 0
+    validation_datasets = 0
+    testing_datasets = 0
+
+    for dataset_type, datasets in total_datasets:
+        match dataset_type:
+            case DatasetType.Training: training_datasets += datasets
+            case DatasetType.Validation: validation_datasets += datasets
+            case DatasetType.Testing: testing_datasets += datasets
+
+    return DatasetAnalysis(
+        training_datasets=training_datasets,
+        validation_datasets=validation_datasets,
+        testing_datasets=testing_datasets,
+    )
