@@ -4,6 +4,7 @@ from sqlmodel import Session, select
 import sqlmodel
 
 from data.database import safe_call
+from data.enums import DatasetType
 from data.models import Dataset, DatasetIntent, DatasetIntentNer
 from dtos.inputs import DatasetForm
 from dtos.outputs import DatasetDetail, DatasetDetailIntent, DatasetDetailResult, DatasetInfo, DatasetIntentNerAlignment, DatasetListItem, ModificationResult
@@ -170,3 +171,29 @@ def restore(dataset_id:int, session:Session) -> ModificationResult[int]:
     session.add(dataset)
     session.commit()
     return ModificationResult(result_data=dataset.dataset_id)
+
+def export(dataset_type:DatasetType, session:Session) -> list[DatasetDetail]:
+    datasets = session.exec(select(Dataset).options(
+        selectinload(Dataset.intents)
+            .selectinload(DatasetIntent.intent),
+        selectinload(Dataset.intents)
+            .selectinload(DatasetIntent.ners)
+            .selectinload(DatasetIntentNer.ner),
+        selectinload(Dataset.member)
+    ).where(Dataset.dataset_type == dataset_type, Dataset.deleted != True, Dataset.approved == True)).all()
+
+    result:list[DatasetDetail] = []
+
+    for dataset in datasets:
+        detail = DatasetDetail(
+            dataset_id=dataset.dataset_id,
+            command=dataset.command,
+            intents=[DatasetDetailIntent.from_(item) for item in dataset.intents],
+            alignments=[DatasetIntentNerAlignment.from_(ner) 
+                        for item in dataset.intents 
+                        for ner in item.ners
+                    ]
+        )
+        result.append(detail)
+    
+    return result

@@ -1,8 +1,11 @@
-from fastapi import APIRouter, Depends, Query
+import json
+
+from fastapi import APIRouter, Depends, Query, Response
 from sqlmodel import Session
 
 from configs import auth
 from data.database import get_session
+from data.enums import DatasetType
 from dtos.inputs import DatasetForm
 from dtos.outputs import DatasetDetailResult, DatasetListItem, ModificationResult
 from dtos.searches import DatasetSearch
@@ -32,6 +35,23 @@ def save(form:DatasetForm, session:Session = Depends(get_session)):
 @auth.authenticated
 def save_jsons(forms:list[DatasetForm], session:Session = Depends(get_session)):
     return datasets.save_jsons(forms, SecurityContext.get_user().user_id, session)
+
+@router.get("/export")
+@auth.authenticated
+def export(dataset_type:DatasetType = Query(), session:Session = Depends(get_session)):
+    result = datasets.export(dataset_type, session)
+    content = json.dumps(
+        [i.model_dump() for i in result],
+        ensure_ascii=False,
+        indent=2,
+    )
+    return Response(
+        content=content,
+        media_type="application/json",
+        headers={
+            "Content-Disposition": f'attachment; filename="{dataset_type.lower()}.json"'
+        }
+    )
 
 @router.get("/bin", response_model=PaginationResult[DatasetListItem])
 @auth.has_roles("Admin", "Supervisor")
