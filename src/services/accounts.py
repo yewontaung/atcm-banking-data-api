@@ -41,7 +41,7 @@ def profile(user_id:str, session:Session) -> Profile:
         Dataset.dataset_type,
         func.count(Dataset.dataset_id)
     ).select_from(Dataset)
-    .where(Dataset.member_id == account.account_id)
+    .where(Dataset.member_id == account.account_id, Dataset.deleted == False)
     .group_by(Dataset.dataset_type))
 
     training_dataset = 0

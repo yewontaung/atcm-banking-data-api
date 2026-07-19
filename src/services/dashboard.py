@@ -15,7 +15,7 @@ def analysis(session:Session) -> DashboardAnalysis:
     DATASETS = select(
         Dataset.dataset_type,
         func.count(Dataset.dataset_id)
-    ).group_by(Dataset.dataset_type)
+    ).where(Dataset.deleted == False).group_by(Dataset.dataset_type)
 
     yesterday = date.today() - timedelta(days=1)
     yesterday_start = datetime.combine(yesterday, time.min)
@@ -32,13 +32,15 @@ def analysis(session:Session) -> DashboardAnalysis:
     YESTERDAY_RATE = COLLECT_RATE.join(Dataset, and_(
         Dataset.member_id == Account.account_id,
         Dataset.created_at >= yesterday_start, 
-        Dataset.created_at <= yesterday_end
+        Dataset.created_at <= yesterday_end,
+        Dataset.deleted == False,
     ), isouter=True)
 
     TODAY_RATE = COLLECT_RATE.join(Dataset, and_(
         Dataset.member_id == Account.account_id,
         Dataset.created_at >= today_start, 
-        Dataset.created_at <= today_end
+        Dataset.created_at <= today_end,
+        Dataset.deleted == False,
     ), isouter=True)
     
     intents = session.exec(INTENTS).one_or_none() or 0

@@ -3,7 +3,7 @@ from typing import Generic, Type, TypeVar
 
 import sqlalchemy
 from sqlalchemy.orm import selectinload
-from sqlmodel import col, desc, distinct, func, select
+from sqlmodel import and_, col, desc, distinct, func, select
 
 from data.enums import DatasetType, MemberRole
 from data.models import NER, Account, Dataset, DatasetIntent, DatasetIntentNer, Intent, NerIntentLink
@@ -88,13 +88,13 @@ class DatasetListItem(BaseDto):
             select(Dataset, Account.name)
             .select_from(Dataset)
             .join(Account, Account.account_id == Dataset.member_id)
-            .order_by(desc(Dataset.updated_at))
+            .order_by(desc(Dataset.dataset_id))
         )
 
     @classmethod
     def count(cls):
         return (
-            select(func.count(distinct(Dataset.dataset_id)))
+            select(func.count(Dataset.dataset_id))
             .select_from(Dataset)
             .join(Account, Account.account_id == Dataset.member_id)
         )

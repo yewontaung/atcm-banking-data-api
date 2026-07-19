@@ -14,7 +14,7 @@ from utils.paginations import PaginationResult
 
 
 def search(search:DatasetSearch, page:int, size:int, session:Session) -> PaginationResult[DatasetListItem]:
-    sql = search.where(DatasetListItem.select()).where(Dataset.deleted == False).limit(size).offset(page - 1)
+    sql = search.where(DatasetListItem.select()).where(Dataset.deleted == False).limit(size).offset((page - 1) * size)
     result = session.exec(statement=sql).all()
     items = [DatasetListItem(
                 dataset_id=dataset.dataset_id, 
@@ -32,7 +32,7 @@ def search(search:DatasetSearch, page:int, size:int, session:Session) -> Paginat
     return PaginationResult(items=items, page=page, size=size, total=total or 0)
 
 def recycle_bin(page:int, size:int, session:Session) -> PaginationResult[DatasetListItem]:
-    result = session.exec(DatasetListItem.select().where(Dataset.deleted == True)).all()
+    result = session.exec(DatasetListItem.select().where(Dataset.deleted == True).limit(size).offset((page - 1) * size)).all()
     items = [DatasetListItem(
                 dataset_id=dataset.dataset_id, 
                 command=dataset.command, 

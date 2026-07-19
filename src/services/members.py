@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 
-from sqlmodel import Session, desc, func, select
+from sqlmodel import Session, and_, desc, func, select
 
 from data.database import safe_call
 from data.enums import MemberRole
@@ -17,7 +17,7 @@ def search(search:MemberSearch, user_id:str, session:Session) -> list[MemberList
     
     sql = search.where(
         MemberListItem.select(Dataset).select_from(Account)
-        .join(Dataset, Dataset.member_id == Account.account_id, isouter=True)
+        .join(Dataset, and_(Dataset.member_id == Account.account_id, Dataset.deleted == False), isouter=True)
     ).order_by(desc(Account.account_id))
     result = session.execute(statement=sql).all()
     return [MemberListItem(**item._mapping) for item in result]
