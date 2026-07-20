@@ -1,6 +1,0 @@
-[tool.setuptools]
-package-dir = {"" = "src"}
-
-[project]
-name = "atcm-banking-data-api"
-version = "0.1.0"
