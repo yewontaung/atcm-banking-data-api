@@ -1,0 +1,59 @@
+from datetime import datetime, timezone
+
+from sqlmodel import Session, and_, desc, func, select
+
+from app.data.database import safe_call
+from app.data.enums import MemberRole
+from app.data.models import Account, Dataset
+from app.dtos.inputs import MemberForm
+from app.dtos.outputs import MemberListItem, ModificationResult
+from app.dtos.searches import MemberSearch
+from app.utils import env
+from app.utils.exceptions import AppBusinessException
+from app.utils.singletons import hash_password
+
+
+def search(search:MemberSearch, user_id:str, session:Session) -> list[MemberListItem]:
+    
+    sql = search.where(
+        MemberListItem.select(Dataset).select_from(Account)
+        .join(Dataset, and_(Dataset.member_id == Account.account_id, Dataset.deleted == False), isouter=True)
+    ).order_by(desc(Account.account_id))
+    result = session.execute(statement=sql).all()
+    return [MemberListItem(**item._mapping) for item in result]
+
+def save(form:MemberForm, user_id:str, session:Session)-> ModificationResult[int]:
+    if session.exec(select(Account).where(Account.account_email == form.member_email)).one_or_none() is not None:
+        raise AppBusinessException(f"Member with email: {form.member_email} has already existed.")
+    account = Account(
+        account_email=form.member_email,
+        role=MemberRole(form.role),
+        created_at=datetime.now(tz=timezone.utc),
+        hashed_password=hash_password(env.DEFAULT_PASSWORD),
+        name=form.name,
+    )
+    session.add(account)
+    session.commit()
+    session.refresh(account)
+    return ModificationResult(result_data=account.account_id)
+
+def update(member_id:int, form:MemberForm, session:Session) -> ModificationResult[int]:
+    member = safe_call(session.get(Account, member_id), "Member", "member_id", member_id)
+    if not form.is_valid(member):
+        raise AppBusinessException("Cannot update same data.")
+    if session.exec(select(func.count(Account.account_id)).where(Account.account_email == form.member_email, Account.account_id != member.account_id)).one_or_none():
+        raise AppBusinessException(f"{form.member_email} already exists. Please use another email address.")
+
+    if member.role == "Admin" and form.role != "Admin":
+        admin_count = session.exec(select(func.count(Account.account_id)).where(Account.role == MemberRole.Admin)).one_or_none()
+        if admin_count and admin_count == 1:
+            raise AppBusinessException("Cannot change role from Admin when there is only one admin.")
+
+    member.account_email = form.member_email
+    member.name = form.name
+    member.role = form.role
+
+    session.add(member)
+    session.commit()
+
+    return ModificationResult(result_data=member.account_id)
