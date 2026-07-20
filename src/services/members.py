@@ -43,7 +43,12 @@ def update(member_id:int, form:MemberForm, session:Session) -> ModificationResul
         raise AppBusinessException("Cannot update same data.")
     if session.exec(select(func.count(Account.account_id)).where(Account.account_email == form.member_email, Account.account_id != member.account_id)).one_or_none():
         raise AppBusinessException(f"{form.member_email} already exists. Please use another email address.")
-    
+
+    if member.role == "Admin" and form.role != "Admin":
+        admin_count = session.exec(select(func.count(Account.account_id)).where(Account.role == MemberRole.Admin)).one_or_none()
+        if admin_count and admin_count == 1:
+            raise AppBusinessException("Cannot change role from Admin when there is only one admin.")
+
     member.account_email = form.member_email
     member.name = form.name
     member.role = form.role
