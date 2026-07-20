@@ -1,7 +1,7 @@
 {
   "builds": [
     {
-      "src": "src/app/main.py",
+      "src": "main.py",
       "use": "@vercel/python",
       "config": {
         "includeFiles": "statics/**"
@@ -11,7 +11,7 @@
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "src/app/main.py"
+      "dest": "main.py"
     }
   ]
 }
