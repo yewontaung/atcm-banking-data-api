@@ -1,17 +1,8 @@
 {
-  "builds": [
+  "rewrites": [
     {
-      "src": "main.py",
-      "use": "@vercel/python",
-      "config": {
-        "includeFiles": "statics/**"
-      }
-    }
-  ],
-  "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "main.py"
+      "source": "/(.*)",
+      "destination": "/main.py"
     }
   ]
 }
