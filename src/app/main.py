@@ -46,11 +46,13 @@ app.add_middleware(
     allow_credentials=True,
 )
 
-app.mount(
-    "/statics",
-    StaticFiles(directory="statics")
-)
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
+app.mount(
+    "/static",
+    StaticFiles(directory=BASE_DIR / "statics"),
+    name="static"
+)
 
 # if __name__ == "__main__":
 #     uvicorn.run(app="main:app", reload=True)
