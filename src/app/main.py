@@ -6,6 +6,7 @@ from fastapi.staticfiles import StaticFiles
 
 from app import handlers, routes
 from data import database
+from utils import env
 from utils.exceptions import AppBusinessException, ResourceNotFoundException
 from utils.managers.security import SecurityException
 
@@ -35,9 +36,11 @@ app.exception_handler(SecurityException)(handlers.handle_security_exception)
 app.include_router(router=routes.annonymous)
 app.include_router(router=routes.authenticated)
 
+origins = env.ALLOWED_ORIGINS.split(",")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=origins,
     allow_methods=["*"],
     allow_headers=["*"],
     allow_credentials=True,

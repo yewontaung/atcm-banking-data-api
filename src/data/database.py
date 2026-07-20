@@ -21,9 +21,10 @@ def get_session():
 
 @event.listens_for(Engine, "connect")
 def set_database_pragma(conn:sqlite3.Connection, _):
-    cursor = conn.cursor()
-    cursor.execute("PRAGMA foreign_keys=ON")
-    cursor.close()
+    if conn.__class__.__module__.startswith('sqlite3'):
+        cursor = conn.cursor()
+        cursor.execute("PRAGMA foreign_keys=ON")
+        cursor.close()
 
 T = TypeVar("T")
 
