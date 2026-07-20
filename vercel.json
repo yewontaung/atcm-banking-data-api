@@ -1,13 +1,17 @@
 {
-  "functions": {
-    "main.py": {
-      "runtime": "python@3.12"
-    }
-  },
-  "rewrites": [
+  "builds": [
     {
-      "source": "/(.*)",
-      "destination": "main.py"
+      "src": "main.py",
+      "use": "@vercel/python",
+      "config": {
+        "includeFiles": "statics/**"
+      }
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "main.py"
     }
   ]
 }
