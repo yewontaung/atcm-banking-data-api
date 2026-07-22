@@ -1,8 +1,8 @@
-"""create tables
+"""init redesign model schemas
 
-Revision ID: 8663821ee15b
+Revision ID: 6acc9b2783dd
 Revises: 
-Create Date: 2026-07-15 14:04:17.762710
+Create Date: 2026-07-22 17:18:48.356007
 
 """
 from typing import Sequence, Union
@@ -13,7 +13,7 @@ import sqlmodel
 
 
 # revision identifiers, used by Alembic.
-revision: str = '8663821ee15b'
+revision: str = '6acc9b2783dd'
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -40,13 +40,16 @@ def upgrade() -> None:
     sa.Column('dataset_type', sa.Enum('Training', 'Validation', 'Testing', name='datasettype'), nullable=False),
     sa.Column('approved', sa.Boolean(), nullable=False),
     sa.Column('member_id', sa.Integer(), nullable=False),
+    sa.Column('created_at', sa.DateTime(), nullable=True),
     sa.Column('updated_at', sa.DateTime(), nullable=False),
     sa.Column('deleted', sa.Boolean(), nullable=False),
+    sa.ForeignKeyConstraint(['member_id'], ['account.account_id'], name='fk_dataset_member'),
     sa.PrimaryKeyConstraint('dataset_id')
     )
     op.create_table('intent',
     sa.Column('intent_id', sa.Integer(), nullable=False),
     sa.Column('label', sqlmodel.sql.sqltypes.AutoString(), nullable=False),
+    sa.Column('description', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
     sa.Column('created_at', sa.DateTime(), nullable=False),
     sa.Column('updated_at', sa.DateTime(), nullable=True),
     sa.Column('created_by', sa.Integer(), nullable=False),
@@ -65,13 +68,14 @@ def upgrade() -> None:
     sa.UniqueConstraint('label')
     )
     op.create_table('datasetintent',
+    sa.Column('datasetintent_id', sa.Integer(), nullable=False),
     sa.Column('intent_id', sa.Integer(), nullable=False),
     sa.Column('dataset_id', sa.Integer(), nullable=False),
     sa.Column('start_index', sa.Integer(), nullable=False),
     sa.Column('end_index', sa.Integer(), nullable=False),
-    sa.ForeignKeyConstraint(['dataset_id'], ['dataset.dataset_id'], name='datasetintent_dataset', ondelete='CASCADE'),
-    sa.ForeignKeyConstraint(['intent_id'], ['intent.intent_id'], ),
-    sa.PrimaryKeyConstraint('intent_id', 'dataset_id')
+    sa.ForeignKeyConstraint(['dataset_id'], ['dataset.dataset_id'], name='fk_datasetintent_dataset', ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['intent_id'], ['intent.intent_id'], name='fk_datasetintent_intent'),
+    sa.PrimaryKeyConstraint('datasetintent_id')
     )
     op.create_table('nerintentlink',
     sa.Column('ner_id', sa.Integer(), nullable=False),
@@ -81,14 +85,14 @@ def upgrade() -> None:
     sa.PrimaryKeyConstraint('ner_id', 'intent_id')
     )
     op.create_table('datasetintentner',
+    sa.Column('datasetintentner_id', sa.Integer(), nullable=False),
     sa.Column('ner_id', sa.Integer(), nullable=False),
-    sa.Column('intent_id', sa.Integer(), nullable=False),
-    sa.Column('dataset_id', sa.Integer(), nullable=False),
+    sa.Column('datasetintent_id', sa.Integer(), nullable=False),
     sa.Column('start_index', sa.Integer(), nullable=False),
     sa.Column('end_index', sa.Integer(), nullable=False),
-    sa.ForeignKeyConstraint(['intent_id', 'dataset_id'], ['datasetintent.intent_id', 'datasetintent.dataset_id'], name='fk_datasetintentner_datasetintent_dataset', ondelete='CASCADE'),
-    sa.ForeignKeyConstraint(['ner_id'], ['ner.ner_id'], ),
-    sa.PrimaryKeyConstraint('ner_id', 'intent_id', 'dataset_id')
+    sa.ForeignKeyConstraint(['datasetintent_id'], ['datasetintent.datasetintent_id'], name='fk_datasetintentner_datasetintent', ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['ner_id'], ['ner.ner_id'], name='fk_datasetintentner_ner'),
+    sa.PrimaryKeyConstraint('datasetintentner_id')
     )
     # ### end Alembic commands ###
 

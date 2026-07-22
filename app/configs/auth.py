@@ -24,7 +24,6 @@ async def get_current_user(token:str = Depends(oauth2_scheme), session:Session =
             username=account.account_email,
             roles=frozenset({account.role.name}),
         )
-        print(user.roles)
     except jwt.InvalidTokenError:
         raise HTTPException(status_code=HTTPStatus.UNAUTHORIZED, detail="Invalid token.")
     except ResourceNotFoundException as e:

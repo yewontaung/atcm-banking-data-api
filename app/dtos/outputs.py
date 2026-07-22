@@ -138,13 +138,13 @@ class DatasetIntentNerAlignment(BaseDto):
     intent_id:int
 
     @staticmethod
-    def from_(ner:DatasetIntentNer) -> "DatasetIntentNerAlignment":
+    def from_(ner:DatasetIntentNer, intent_id:int) -> "DatasetIntentNerAlignment":
         return DatasetIntentNerAlignment(
             ner_id=ner.ner_id,
             label=ner.ner.label,
             start_index=ner.start_index,
             end_index=ner.end_index,
-            intent_id=ner.intent_id,
+            intent_id=intent_id,
         )
 
 class DatasetDetailIntent(BaseDto):

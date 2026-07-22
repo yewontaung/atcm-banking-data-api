@@ -58,27 +58,27 @@ def approve(dataset_id:int, user_id:str, session:Session) -> ModificationResult[
 def save(form:DatasetForm, user_id:str, session:Session) -> ModificationResult[int]:
     try:
         dataset = form.dataset(user_id)
-        session.add(dataset)
-        session.flush([dataset])
 
-        intents = [DatasetIntent(
-            intent_id=intent.intent_id, 
-            dataset_id=dataset.dataset_id,
-            start_index=intent.start_index,
-            end_index=intent.end_index,
-            ners=[DatasetIntentNer(
-                ner_id=ner.ner_id, 
+        for intent in form.intents:
+            intent = DatasetIntent(
                 intent_id=intent.intent_id, 
-                dataset_id=dataset.dataset_id,
-                start_index=ner.start_index,
-                end_index=ner.end_index) for ner in intent.ners]) 
-            for intent in form.intents]
+                start_index=intent.start_index,
+                end_index=intent.end_index,
+                ners=[DatasetIntentNer(
+                    ner_id=ner.ner_id, 
+                    start_index=ner.start_index,
+                    end_index=ner.end_index,
+                ) for ner in intent.ners]
+            )
         
-        session.add_all(intents)
+            dataset.intents.append(intent)
+        
+        session.add(dataset)
         session.commit()
 
         return ModificationResult(result_data=dataset.dataset_id)
     except IntegrityError as e:
+        print(str(e))
         raise AppBusinessException("Data validation failed. Check input value again.")
     
 def save_jsons(forms:list[DatasetForm], user_id:int, session:Session) -> ModificationResult[list[int]]:
@@ -96,8 +96,6 @@ def save_jsons(forms:list[DatasetForm], user_id:int, session:Session) -> Modific
                 end_index=intent.end_index,
                 ners=[DatasetIntentNer(
                     ner_id=ner.ner_id, 
-                    intent_id=intent.intent_id, 
-                    dataset_id=dataset.dataset_id,
                     start_index=ner.start_index,
                     end_index=ner.end_index) for ner in intent.ners]) 
                 for intent in form.intents]
@@ -129,13 +127,14 @@ def delete(dataset_id:int, session:Session):
 
 def find_by_id(dataset_id:int, session:Session) -> DatasetDetailResult:
     
-    dataset = session.exec(select(Dataset).options(
+    dataset = session.exec(
+    select(Dataset).options(
+        selectinload(Dataset.member),
         selectinload(Dataset.intents)
             .selectinload(DatasetIntent.intent),
         selectinload(Dataset.intents)
             .selectinload(DatasetIntent.ners)
             .selectinload(DatasetIntentNer.ner),
-        selectinload(Dataset.member)
     ).where(Dataset.dataset_id == dataset_id)).first()
     
     dataset = safe_call(dataset, "Dataset", "dataset_id", dataset_id)
@@ -144,7 +143,7 @@ def find_by_id(dataset_id:int, session:Session) -> DatasetDetailResult:
         dataset_id=dataset.dataset_id,
         command=dataset.command,
         intents=[DatasetDetailIntent.from_(item) for item in dataset.intents],
-        alignments=[DatasetIntentNerAlignment.from_(ner) 
+        alignments=[DatasetIntentNerAlignment.from_(ner, item.intent_id) 
                     for item in dataset.intents 
                     for ner in item.ners
                 ]
@@ -188,7 +187,7 @@ def export(dataset_type:DatasetType, session:Session) -> list[DatasetDetail]:
             dataset_id=dataset.dataset_id,
             command=dataset.command,
             intents=[DatasetDetailIntent.from_(item) for item in dataset.intents],
-            alignments=[DatasetIntentNerAlignment.from_(ner) 
+            alignments=[DatasetIntentNerAlignment.from_(ner, item.intent_id) 
                         for item in dataset.intents 
                         for ner in item.ners
                     ]
