@@ -130,37 +130,37 @@ class Profile(BaseDto):
 class ProfileUploadResult(BaseDto):
     image_url:str
 
-class DatasetIntentNerAlignment(BaseDto):
-    ner_id:int
-    label:str
-    start_index:int
-    end_index:int
-    intent_id:int
+# class DatasetIntentNerAlignment(BaseDto):
+#     ner_id:int
+#     label:str
+#     start_index:int
+#     end_index:int
+#     intent_id:int
 
-    @staticmethod
-    def from_(ner:DatasetIntentNer, intent_id:int) -> "DatasetIntentNerAlignment":
-        return DatasetIntentNerAlignment(
-            ner_id=ner.ner_id,
-            label=ner.ner.label,
-            start_index=ner.start_index,
-            end_index=ner.end_index,
-            intent_id=intent_id,
-        )
+#     @staticmethod
+#     def from_(ner:DatasetIntentNer, intent_id:int) -> "DatasetIntentNerAlignment":
+#         return DatasetIntentNerAlignment(
+#             ner_id=ner.ner_id,
+#             label=ner.ner.label,
+#             start_index=ner.start_index,
+#             end_index=ner.end_index,
+#             intent_id=intent_id,
+#         )
 
-class DatasetDetailIntent(BaseDto):
-    intent_id:int
-    label:str
-    start_index:int
-    end_index:int
+# class DatasetDetailIntent(BaseDto):
+#     intent_id:int
+#     label:str
+#     start_index:int
+#     end_index:int
 
-    @staticmethod
-    def from_(intent:DatasetIntent) -> "DatasetDetailIntent":
-        return DatasetDetailIntent(
-            intent_id=intent.intent_id,
-            label=intent.intent.label,
-            start_index=intent.start_index,
-            end_index=intent.end_index,
-        )
+#     @staticmethod
+#     def from_(intent:DatasetIntent) -> "DatasetDetailIntent":
+#         return DatasetDetailIntent(
+#             intent_id=intent.intent_id,
+#             label=intent.intent.label,
+#             start_index=intent.start_index,
+#             end_index=intent.end_index,
+#         )
 
 class DatasetInfo(BaseDto):
     dataset_id:int
@@ -172,11 +172,49 @@ class DatasetInfo(BaseDto):
     deleted:bool
     last_updated:datetime
 
+# class DatasetDetail(BaseDto):
+#     dataset_id:int
+#     command:str
+#     intents:list[DatasetDetailIntent]
+#     alignments:list[DatasetIntentNerAlignment]
+
+class DatasetDetailIntentEntity(BaseDto):
+    ner_id:int
+    label:str
+    start_index:int
+    end_index:int
+
+    @staticmethod
+    def from_(ner:DatasetIntentNer) -> "DatasetDetailIntentEntity":
+        return DatasetDetailIntentEntity(
+            ner_id=ner.ner_id,
+            label=ner.ner.label,
+            start_index=ner.start_index,
+            end_index=ner.end_index,
+        )
+
+class DatasetDetailIntent(BaseDto):
+    intent_id:int
+    label:str
+    start_index:int
+    end_index:int
+    entities:list[DatasetDetailIntentEntity]
+
+    @staticmethod
+    def from_(intent:DatasetIntent) -> "DatasetDetailIntent":
+        return DatasetDetailIntent(
+            intent_id=intent.intent_id,
+            label=intent.intent.label,
+            start_index=intent.start_index,
+            end_index=intent.end_index,
+            entities=[DatasetDetailIntentEntity.from_(ner) for ner in intent.ners]
+        )
+
 class DatasetDetail(BaseDto):
     dataset_id:int
-    command:str
+    text:str
     intents:list[DatasetDetailIntent]
-    alignments:list[DatasetIntentNerAlignment]
+
 
 class DatasetDetailResult(BaseDto):
     info:DatasetInfo

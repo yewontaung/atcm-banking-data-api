@@ -6,7 +6,7 @@ from app.data.database import safe_call
 from app.data.enums import DatasetType
 from app.data.models import Dataset, DatasetIntent, DatasetIntentNer
 from app.dtos.inputs import DatasetForm
-from app.dtos.outputs import DatasetAnalysis, DatasetDetail, DatasetDetailIntent, DatasetDetailResult, DatasetInfo, DatasetIntentNerAlignment, DatasetListItem, ModificationResult
+from app.dtos.outputs import DatasetAnalysis, DatasetDetail, DatasetDetailIntent, DatasetDetailResult, DatasetInfo, DatasetListItem, ModificationResult
 from app.dtos.searches import DatasetSearch
 from app.utils.exceptions import AppBusinessException
 from app.utils.paginations import PaginationResult
@@ -139,14 +139,20 @@ def find_by_id(dataset_id:int, session:Session) -> DatasetDetailResult:
     
     dataset = safe_call(dataset, "Dataset", "dataset_id", dataset_id)
 
+    # detail = DatasetDetail(
+    #     dataset_id=dataset.dataset_id,
+    #     command=dataset.command,
+    #     intents=[DatasetDetailIntent.from_(item) for item in dataset.intents],
+    #     alignments=[DatasetIntentNerAlignment.from_(ner, item.intent_id) 
+    #                 for item in dataset.intents 
+    #                 for ner in item.ners
+    #             ]
+    # )
+
     detail = DatasetDetail(
         dataset_id=dataset.dataset_id,
-        command=dataset.command,
-        intents=[DatasetDetailIntent.from_(item) for item in dataset.intents],
-        alignments=[DatasetIntentNerAlignment.from_(ner, item.intent_id) 
-                    for item in dataset.intents 
-                    for ner in item.ners
-                ]
+        text=dataset.command,
+        intents=[DatasetDetailIntent.from_(item) for item in dataset.intents]
     )
 
     return DatasetDetailResult(
@@ -182,16 +188,24 @@ def export(dataset_type:DatasetType, session:Session) -> list[DatasetDetail]:
 
     result:list[DatasetDetail] = []
 
+    # for dataset in datasets:
+    #     detail = DatasetDetail(
+    #         dataset_id=dataset.dataset_id,
+    #         command=dataset.command,
+    #         intents=[DatasetDetailIntent.from_(item) for item in dataset.intents],
+    #         alignments=[DatasetIntentNerAlignment.from_(ner, item.intent_id) 
+    #                     for item in dataset.intents 
+    #                     for ner in item.ners
+    #                 ]
+    #     )
+
     for dataset in datasets:
         detail = DatasetDetail(
             dataset_id=dataset.dataset_id,
-            command=dataset.command,
-            intents=[DatasetDetailIntent.from_(item) for item in dataset.intents],
-            alignments=[DatasetIntentNerAlignment.from_(ner, item.intent_id) 
-                        for item in dataset.intents 
-                        for ner in item.ners
-                    ]
+            text=dataset.command,
+            intents=[DatasetDetailIntent.from_(item) for item in dataset.intents]
         )
+
         result.append(detail)
     
     return result
