@@ -1,5 +1,5 @@
 from sqlalchemy.orm import selectinload
-from sqlmodel import Session, func, select
+from sqlmodel import Session, desc, func, select
 
 from app.data.models import Account, DatasetModificationLog
 from app.dtos.outputs import DatasetModificationLogListItem
@@ -11,7 +11,7 @@ def search(page:int, size:int, session:Session) -> PaginationResult[DatasetModif
         DatasetModificationLog,
         Account).select_from(DatasetModificationLog).join(
             Account, Account.account_id == DatasetModificationLog.account_id
-        ).limit(size).offset((page - 1) * size)
+        ).order_by(desc(DatasetModificationLog.created_at)).limit(size).offset((page - 1) * size)
 
     count = select(func.count(DatasetModificationLog.log_id))
 
