@@ -2,9 +2,11 @@ from sqlalchemy.orm import selectinload
 from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session, func, select
 
+from app.configs import evm
 from app.data.database import safe_call
-from app.data.enums import DatasetType
-from app.data.models import Dataset, DatasetIntent, DatasetIntentNer
+from app.data.enums import DatasetType, ModificationType
+from app.data.models import Account, Dataset, DatasetIntent, DatasetIntentNer
+from app.dtos.events import DatasetModificationEvent
 from app.dtos.inputs import DatasetForm
 from app.dtos.outputs import DatasetAnalysis, DatasetDetail, DatasetDetailIntent, DatasetDetailResult, DatasetInfo, DatasetListItem, ModificationResult
 from app.dtos.searches import DatasetSearch
@@ -53,6 +55,15 @@ def approve(dataset_id:int, user_id:str, session:Session) -> ModificationResult[
     dataset.approved = True
     session.add(dataset)
     session.commit()
+
+    event = DatasetModificationEvent(
+        dataset_id=dataset_id,
+        account_id=int(user_id),
+        modification_type=ModificationType.Approve,
+    )
+
+    evm.publish(event=event)
+
     return ModificationResult(result_data=dataset.dataset_id)
 
 def save(form:DatasetForm, user_id:str, session:Session) -> ModificationResult[int]:
@@ -236,3 +247,55 @@ def analysis(session:Session) -> DatasetAnalysis:
         validation_datasets=validation_datasets,
         testing_datasets=testing_datasets,
     )
+
+def update(dataset_id:int, update:DatasetDetail, user_id:str, session:Session) -> ModificationResult[int]:
+
+    if dataset_id != update.dataset_id:
+        raise AppBusinessException("Invalid dataset.")
+
+    dataset = safe_call(session.get(Dataset, dataset_id), "Dataset", "dataset_id", dataset_id)
+    account = safe_call(session.get(Account, user_id), "Account", "user_id", user_id)
+
+    dataset.command = update.text
+    old_intents = dataset.intents
+
+    def find_old_intent(datasetintent_id:int) -> DatasetIntent:
+        for old_intent in old_intents:
+            if old_intent.datasetintent_id != datasetintent_id:
+                continue
+            else:
+                return old_intent
+
+    def find_old_entity(datasetintentner_id:int, old_entities:list[DatasetIntentNer]) -> DatasetIntentNer:
+        for old_entity in old_entities:
+            if old_entity.datasetintentner_id != datasetintentner_id:
+                continue
+            else:
+                return old_entity
+
+    for item in update.intents:
+        old_intent = find_old_intent(item.datasetintent_id)
+        if not old_intent:
+            continue
+
+        old_intent.start_index = item.start_index
+        old_intent.end_index = item.end_index
+
+        for entity in item.entities:
+            old_entity = find_old_entity(entity.datasetintentner_id, old_intent.ners)
+            if not old_entity:
+                continue
+            old_entity.start_index = entity.start_index
+            old_entity.end_index = entity.end_index
+
+    session.commit()
+
+    event = DatasetModificationEvent(
+        dataset_id=dataset.dataset_id,
+        account_id=account.account_id,
+        modification_type=ModificationType.Edit,
+    )
+
+    evm.publish(event=event)
+
+    return ModificationResult(result_data=dataset_id)

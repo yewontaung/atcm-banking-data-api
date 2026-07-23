@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 
 from app.configs import auth
-from app.controllers import dashboard, datasets, intents, me, members, ners
+from app.controllers import dashboard, datasetlogs, datasets, intents, me, members, ners
 import app.controllers.auth
 
 
@@ -18,3 +18,4 @@ authenticated.include_router(router=ners.router)
 authenticated.include_router(router=intents.router)
 authenticated.include_router(router=datasets.router)
 authenticated.include_router(router=dashboard.router)
+authenticated.include_router(router=datasetlogs.router)

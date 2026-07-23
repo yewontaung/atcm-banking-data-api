@@ -7,7 +7,7 @@ from app.configs import auth
 from app.data.database import get_session
 from app.data.enums import DatasetType
 from app.dtos.inputs import DatasetForm
-from app.dtos.outputs import DatasetDetailResult, DatasetListItem, ModificationResult
+from app.dtos.outputs import DatasetDetail, DatasetDetailResult, DatasetListItem, ModificationResult
 from app.dtos.searches import DatasetSearch
 from app.services import datasets
 from app.utils.managers.security import SecurityContext
@@ -90,3 +90,8 @@ def soft_delete(dataset_id:int, session:Session = Depends(get_session)):
 @auth.has_roles("Admin", "Supervisor")
 def approve(dataset_id:int, session:Session = Depends(get_session)):
     return datasets.approve(dataset_id=dataset_id, user_id=SecurityContext.get_user().user_id, session=session)
+
+@router.put("/{dataset_id}")
+@auth.authenticated
+def edit(dataset_id:int, update:DatasetDetail, session:Session = Depends(get_session)):
+    return datasets.update(dataset_id, update, SecurityContext.get_user().user_id, session)

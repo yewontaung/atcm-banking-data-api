@@ -3,7 +3,7 @@ from datetime import datetime
 from sqlalchemy import ForeignKeyConstraint
 from sqlmodel import Field, Relationship, SQLModel
 
-from app.data.enums import DatasetType, MemberRole
+from app.data.enums import DatasetType, MemberRole, ModificationType
 
 
 class Account(SQLModel, table=True):
@@ -112,5 +112,29 @@ class DatasetIntentNer(SQLModel, table=True):
             ["datasetintent.datasetintent_id"],
             name="fk_datasetintentner_datasetintent",
             ondelete="CASCADE"
+        ),
+    )
+
+class DatasetModificationLog(SQLModel, table=True):
+    log_id:int | None = Field(primary_key=True, default=None)
+    dataset_id:int = Field()
+    account_id:int = Field()
+    dataset:Dataset = Relationship()
+    account:Account = Relationship()
+    modification_type:ModificationType = Field()
+    created_at:datetime = Field()
+
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ["dataset_id"],
+            ["dataset.dataset_id"],
+            name="fk_datasetmodificationlog_dataset",
+            ondelete="CASCADE",
+        ),
+        ForeignKeyConstraint(
+            ["account_id"],
+            ["account.account_id"],
+            name="fk_datasetmodificationlog_account",
+            ondelete="CASCADE",
         ),
     )

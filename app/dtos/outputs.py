@@ -5,7 +5,7 @@ import sqlalchemy
 from sqlalchemy.orm import selectinload
 from sqlmodel import col, desc, func, select
 
-from app.data.enums import DatasetType, MemberRole
+from app.data.enums import DatasetType, MemberRole, ModificationType
 from app.data.models import NER, Account, Dataset, DatasetIntent, DatasetIntentNer, Intent, NerIntentLink
 from app.utils.basedto import BaseDto
 
@@ -179,6 +179,7 @@ class DatasetInfo(BaseDto):
 #     alignments:list[DatasetIntentNerAlignment]
 
 class DatasetDetailIntentEntity(BaseDto):
+    datasetintentner_id:int
     ner_id:int
     label:str
     start_index:int
@@ -187,6 +188,7 @@ class DatasetDetailIntentEntity(BaseDto):
     @staticmethod
     def from_(ner:DatasetIntentNer) -> "DatasetDetailIntentEntity":
         return DatasetDetailIntentEntity(
+            datasetintentner_id=ner.datasetintentner_id,
             ner_id=ner.ner_id,
             label=ner.ner.label,
             start_index=ner.start_index,
@@ -194,6 +196,7 @@ class DatasetDetailIntentEntity(BaseDto):
         )
 
 class DatasetDetailIntent(BaseDto):
+    datasetintent_id:int
     intent_id:int
     label:str
     start_index:int
@@ -203,6 +206,7 @@ class DatasetDetailIntent(BaseDto):
     @staticmethod
     def from_(intent:DatasetIntent) -> "DatasetDetailIntent":
         return DatasetDetailIntent(
+            datasetintent_id=intent.datasetintent_id,
             intent_id=intent.intent_id,
             label=intent.intent.label,
             start_index=intent.start_index,
@@ -255,3 +259,14 @@ class DashboardAnalysis(BaseDto):
     dataset_analysis:DatasetAnalysis
     today_collect_rate:list[CollectRate]
     yesterday_collect_rate:list[CollectRate]
+
+class DatasetModificationLogListItem(BaseDto):
+    log_id:int
+    dataset_id:int
+    account_id:int
+    name:str
+    account_email:str
+    account_role:MemberRole
+    profile_url:str | None = None
+    modification_type:ModificationType
+    modified_at:datetime

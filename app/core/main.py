@@ -2,9 +2,8 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
 
-from app.core import handlers, routes
+from app.core import handlers, routes, listeners
 from app.data import database
 from app.utils import env
 from app.utils.exceptions import AppBusinessException, ResourceNotFoundException

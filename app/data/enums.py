@@ -10,3 +10,7 @@ class DatasetType(str, Enum):
     Training = "Training"
     Validation = "Validation"
     Testing = "Testing"
+
+class ModificationType(str, Enum):
+    Approve = "Approve"
+    Edit = "Edit"
