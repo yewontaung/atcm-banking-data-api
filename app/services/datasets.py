@@ -8,7 +8,7 @@ from app.data.enums import DatasetType, ModificationType
 from app.data.models import Account, Dataset, DatasetIntent, DatasetIntentNer
 from app.dtos.events import DatasetModificationEvent
 from app.dtos.inputs import DatasetForm
-from app.dtos.outputs import DatasetAnalysis, DatasetDetail, DatasetDetailIntent, DatasetDetailResult, DatasetInfo, DatasetListItem, ModificationResult
+from app.dtos.outputs import DatasetAnalysis, DatasetDetail, DatasetDetailIntent, DatasetDetailResult, DatasetInfo, DatasetListItem, ModificationResult, NextDatasetResult
 from app.dtos.searches import DatasetSearch
 from app.utils.exceptions import AppBusinessException
 from app.utils.paginations import PaginationResult
@@ -299,3 +299,8 @@ def update(dataset_id:int, update:DatasetDetail, user_id:str, session:Session) -
     evm.publish(event=event)
 
     return ModificationResult(result_data=dataset_id)
+
+def next_dataset(dataset_id:int, session:Session) -> NextDatasetResult:
+    query = select(Dataset.dataset_id).where(Dataset.dataset_id != dataset_id, Dataset.approved == False, Dataset.deleted == False).order_by(func.random()).limit(1)
+    dataset_id = session.exec(query).one_or_none()
+    return NextDatasetResult(next_dataset_id=dataset_id)

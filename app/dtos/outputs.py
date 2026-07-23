@@ -270,3 +270,6 @@ class DatasetModificationLogListItem(BaseDto):
     profile_url:str | None = None
     modification_type:ModificationType
     modified_at:datetime
+
+class NextDatasetResult(BaseDto):
+    next_dataset_id:int | None = None

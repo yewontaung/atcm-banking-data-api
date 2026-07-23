@@ -76,6 +76,11 @@ def delete(dataset_id:int, session:Session = Depends(get_session)):
 def restore(dataset_id:int, session:Session = Depends(get_session)):
     return datasets.restore(dataset_id=dataset_id, session=session)
 
+@router.get("/next")
+@auth.authenticated
+def next_dataset(current:int = Query(), session:Session = Depends(get_session)):
+    return datasets.next_dataset(dataset_id=current, session=session)
+
 @router.get("/{dataset_id}", response_model=DatasetDetailResult)
 @auth.authenticated
 def detail(dataset_id:int, session:Session = Depends(get_session)):
