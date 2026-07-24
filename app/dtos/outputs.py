@@ -259,6 +259,7 @@ class DashboardAnalysis(BaseDto):
     dataset_analysis:DatasetAnalysis
     today_collect_rate:list[CollectRate]
     yesterday_collect_rate:list[CollectRate]
+    alltime_collect_rate:list[CollectRate]
 
 class DatasetModificationLogListItem(BaseDto):
     log_id:int

@@ -52,6 +52,8 @@ def approve(dataset_id:int, user_id:str, session:Session) -> ModificationResult[
     dataset = safe_call(session.get(Dataset, dataset_id), "Dataset", "dataset_id", dataset_id)
     if dataset.deleted:
         raise AppBusinessException("Cannot approved dataset from bin.")
+    if dataset.approved:
+        raise AppBusinessException("Dataset is already approved.")
     dataset.approved = True
     session.add(dataset)
     session.commit()
@@ -290,13 +292,13 @@ def update(dataset_id:int, update:DatasetDetail, user_id:str, session:Session) -
 
     session.commit()
 
-    event = DatasetModificationEvent(
-        dataset_id=dataset.dataset_id,
-        account_id=account.account_id,
-        modification_type=ModificationType.Edit,
-    )
+    # event = DatasetModificationEvent(
+    #     dataset_id=dataset.dataset_id,
+    #     account_id=account.account_id,
+    #     modification_type=ModificationType.Edit,
+    # )
 
-    evm.publish(event=event)
+    # evm.publish(event=event)
 
     return ModificationResult(result_data=dataset_id)
 

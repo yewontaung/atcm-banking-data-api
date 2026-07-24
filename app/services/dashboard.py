@@ -42,6 +42,11 @@ def analysis(session:Session) -> DashboardAnalysis:
         Dataset.created_at <= today_end,
         Dataset.deleted == False,
     ), isouter=True)
+
+    ALLTIME_RATE = COLLECT_RATE.join(Dataset, and_(
+        Dataset.member_id == Account.account_id,
+        Dataset.deleted == False,
+    ), isouter=True)
     
     intents = session.exec(INTENTS).one_or_none() or 0
     ners = session.exec(NAMED_ENTITIES).one_or_none() or 0
@@ -62,6 +67,7 @@ def analysis(session:Session) -> DashboardAnalysis:
 
     yesterday_result = session.exec(YESTERDAY_RATE).all()
     today_result = session.exec(TODAY_RATE).all()
+    alltime_result = session.exec(ALLTIME_RATE).all()
 
     yesterday_rate = [CollectRate(
        member_id=member_id,
@@ -87,6 +93,18 @@ def analysis(session:Session) -> DashboardAnalysis:
       collected_data 
     in today_result]
 
+    alltime_rate = [CollectRate(
+       member_id=member_id,
+       member_name=member_name,
+       member_profile=member_profile,
+       collected_data=collected_data or 0,
+    ) for
+      member_id, 
+      member_name, 
+      member_profile, 
+      collected_data 
+    in alltime_result]
+
 
     return DashboardAnalysis(
         dataset_meta=DatasetMeta(
@@ -101,4 +119,5 @@ def analysis(session:Session) -> DashboardAnalysis:
         ),
         today_collect_rate=today_rate,
         yesterday_collect_rate=yesterday_rate,
+        alltime_collect_rate=alltime_rate,
     )

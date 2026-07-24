@@ -54,7 +54,7 @@ def profile(user_id:str, session:Session) -> Profile:
         match dataset_type:
             case DatasetType.Training: training_dataset += count
             case DatasetType.Validation: validation_dataset += count
-            case DatasetType.Testing: validation_dataset += count
+            case DatasetType.Testing: testing_dataset += count
 
 
     return Profile(
